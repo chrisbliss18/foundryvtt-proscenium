@@ -10,7 +10,10 @@ import { moduleId } from "./constants";
 import {createTextCrawlHtml} from "./textCrawl";
 
 Hooks.once('socketlib.ready', () => {
-  const module = (game as Game).modules.get(moduleId) as AnarchistOverlayModule;
+  const module = (game as ReadyGame).modules.get(moduleId) as unknown as AnarchistOverlayModule | undefined;
+  if (!module) {
+    throw new Error(`Unable to initialize ${moduleId}: module data was not found.`);
+  }
 
   const socket = setupSocket();
   setupOverlaySocket(socket);

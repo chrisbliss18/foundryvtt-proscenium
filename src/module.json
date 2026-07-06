@@ -1,16 +1,22 @@
 {
-  "name": "anarchist-overlay",
+  "id": "anarchist-overlay",
   "title": "Anarchist Overlay",
   "description": "Fancy overlay stuff",
   "version": "0.2.0",
-  "minimumCoreVersion" : "9",
-  "compatibleCoreVersion" : "10",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "14"
+  },
   "library": true,
   "styles": ["style.css"],
   "esmodules": ["scripts/module.js"],
   "socket": true,
-  "dependencies": [{
-    "name": "socketlib",
-    "type": "module"
-  }]
+  "relationships": {
+    "requires": [
+      {
+        "id": "socketlib",
+        "type": "module"
+      }
+    ]
+  }
 }

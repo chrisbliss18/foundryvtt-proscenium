@@ -9,11 +9,11 @@
     "watch": "tsc && vite build --watch"
   },
   "devDependencies": {
-    "@league-of-foundry-developers/foundry-vtt-types": "^9.280.0",
+    "@league-of-foundry-developers/foundry-vtt-types": "13.345.1",
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-scss": "^3.0.0",
     "sass": "^1.54.8",
-    "typescript": "^4.8.2",
+    "typescript": "^5.4.5",
     "vite": "^4.3.0"
   }
 }
