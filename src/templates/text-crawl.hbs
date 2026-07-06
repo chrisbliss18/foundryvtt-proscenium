@@ -23,7 +23,7 @@
       width: calc({{textLength}}ch + 6px);
       animation:
       typing {{typingTime}}s steps({{textLength}}) {{startDelay}}s                  normal backwards,
-      blink  .5s             step-end              {{startDelay}}s {{cursorDelay}} alternate
+      blink  .5s             step-end              {{startDelay}}s {{#if isLastLine}}infinite{{else}}{{cursorDelay}}{{/if}} alternate
       {{#if glitchEffect}}, glitch {{glitchEffect.time}}s infinite{{/if}};
       white-space: nowrap;
       overflow: hidden;

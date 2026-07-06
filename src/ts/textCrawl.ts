@@ -22,6 +22,7 @@ export const createTextCrawlHtml = async (config: TextCrawlConfig) => {
       textLength: line.text.length,
       cursorDelay: (normalizedConfig.typingTime + normalizedConfig.delay) * 2,
       startDelay: (normalizedConfig.delay + normalizedConfig.typingTime) * index,
+      isLastLine: index === normalizedConfig.lines.length - 1,
       glitchEffect: normalizedConfig.glitchEffect
     }))
   });
