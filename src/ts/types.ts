@@ -1,9 +1,19 @@
-import { createOverlay } from './overlay';
-import { createTextCrawlHtml } from "./textCrawl";
+import type { closeAllOverlays, closeOverlay, createOverlay } from './overlay';
+import type { createTextCrawlHtml } from "./textCrawl";
 
-export interface AnarchistOverlayModule {
+export type AnarchistOverlayApi = {
   createOverlay: ReturnType<typeof createOverlay>;
   createTextCrawlHtml: typeof createTextCrawlHtml;
+  closeAllOverlays: ReturnType<typeof closeAllOverlays>;
+  closeOverlay: ReturnType<typeof closeOverlay>;
+};
+
+export interface AnarchistOverlayModule {
+  api: AnarchistOverlayApi;
+  createOverlay: AnarchistOverlayApi['createOverlay'];
+  createTextCrawlHtml: AnarchistOverlayApi['createTextCrawlHtml'];
+  closeAllOverlays: AnarchistOverlayApi['closeAllOverlays'];
+  closeOverlay: AnarchistOverlayApi['closeOverlay'];
 }
 
 

@@ -3,9 +3,9 @@
 import '../styles/overlay.scss';
 import '../styles/text-crawl.scss';
 
-import { AnarchistOverlayModule } from './types';
+import type { AnarchistOverlayApi, AnarchistOverlayModule } from './types';
 import { setupSocket } from './socket';
-import { createOverlay, setupOverlaySocket } from './overlay';
+import { closeAllOverlays, closeOverlay, createOverlay, setupOverlaySocket } from './overlay';
 import { moduleId } from "./constants";
 import {createTextCrawlHtml} from "./textCrawl";
 
@@ -17,6 +17,17 @@ Hooks.once('socketlib.ready', () => {
 
   const socket = setupSocket();
   setupOverlaySocket(socket);
-  module.createOverlay = createOverlay(socket);
-  module.createTextCrawlHtml = createTextCrawlHtml;
+
+  const api: AnarchistOverlayApi = {
+    createOverlay: createOverlay(socket),
+    createTextCrawlHtml,
+    closeAllOverlays: closeAllOverlays(socket),
+    closeOverlay: closeOverlay(socket)
+  };
+
+  module.api = api;
+  module.createOverlay = api.createOverlay;
+  module.createTextCrawlHtml = api.createTextCrawlHtml;
+  module.closeAllOverlays = api.closeAllOverlays;
+  module.closeOverlay = api.closeOverlay;
 });
