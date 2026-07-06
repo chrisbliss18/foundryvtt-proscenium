@@ -71,6 +71,7 @@ const handleSceneTransition = async (config: SceneTransitionConfig, controllingU
 
     await sleeper(normalizedConfig.timing.closeMs);
     overlay.classList.remove('doors-closing');
+    overlay.classList.add('doors-sealed');
 
     if (normalizedConfig.text) {
       const textHtml = await createTextCrawlHtml(normalizedConfig.text);
@@ -100,6 +101,7 @@ const handleSceneTransition = async (config: SceneTransitionConfig, controllingU
     void playSound(normalizedConfig.sounds.open, normalizedConfig.sounds.doorVolume);
     overlay.classList.add('doors-opening');
     overlay.classList.add('doors-open');
+    overlay.classList.remove('doors-sealed');
     overlay.classList.remove('doors-closed');
 
     await sleeper(normalizedConfig.timing.openMs);
