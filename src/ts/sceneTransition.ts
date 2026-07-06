@@ -15,6 +15,7 @@ export type SceneTransitionConfig = {
 export type SceneTransitionTiming = {
   closeMs?: number;
   textMs?: number;
+  unlockMs?: number;
   openMs?: number;
   textFadeMs?: number;
   sceneReadyTimeoutMs?: number;
@@ -22,8 +23,11 @@ export type SceneTransitionTiming = {
 
 export type SceneTransitionSounds = {
   close?: string;
+  seal?: string;
+  unlock?: string;
   open?: string;
   typing?: string;
+  typingClick?: string;
   doorVolume?: number;
   typingVolume?: number;
 };
@@ -38,12 +42,25 @@ type TransitionSound = {
   stop: () => Promise<unknown> | unknown;
 };
 
+type TransitionAudio = {
+  stop: () => Promise<unknown> | unknown;
+};
+
+type TransitionController = {
+  canceled: boolean;
+  cancel: () => void;
+  cancelPromise: Promise<void>;
+};
+
 type AudioHelperGlobal = {
   play: (
     data: { src: string; volume: number; loop: boolean },
     socketOptions?: boolean | null
   ) => Promise<TransitionSound>;
 };
+
+const activeTransitions = new Map<string, TransitionController>();
+let sceneTransitionSocket: ModuleSocket | undefined;
 
 export const playSceneTransition = (socket: ModuleSocket) => (config: SceneTransitionConfig) => {
   assertGM('play scene transitions');
@@ -58,15 +75,34 @@ export const playSceneTransition = (socket: ModuleSocket) => (config: SceneTrans
 };
 
 export const setupSceneTransitionSocket = (socket: ModuleSocket) => {
+  sceneTransitionSocket = socket;
   socket.register('playSceneTransition', handleSceneTransition);
+  socket.register('cancelSceneTransition', handleSceneTransitionCancel);
+};
+
+const handleSceneTransitionCancel = (id: string) => {
+  activeTransitions.get(id)?.cancel();
 };
 
 const handleSceneTransition = async (config: SceneTransitionConfig, controllingUserId: string) => {
   const normalizedConfig = normalizeConfig(config);
   const overlay = createTransitionOverlay(normalizedConfig);
-  let typingSound: TransitionSound | undefined;
+  const controller = createTransitionController();
+  let typingAudio: TransitionAudio | undefined;
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || controller.canceled) {
+      return;
+    }
 
+    event.preventDefault();
+    controller.cancel();
+    void requestTransitionCancel(normalizedConfig.id);
+  };
+
+  activeTransitions.get(normalizedConfig.id)?.cancel();
   removeExistingTransition(normalizedConfig.id);
+  activeTransitions.set(normalizedConfig.id, controller);
+  window.addEventListener('keydown', handleKeyDown, true);
   document.body.append(overlay);
 
   try {
@@ -76,9 +112,13 @@ const handleSceneTransition = async (config: SceneTransitionConfig, controllingU
     overlay.classList.add('doors-closed');
     overlay.classList.remove('doors-open');
 
-    await sleeper(normalizedConfig.timing.closeMs);
+    if (await waitForOrCancel(sleeper(normalizedConfig.timing.closeMs), controller)) {
+      return await finishCanceledTransition(normalizedConfig, controllingUserId, overlay, typingAudio);
+    }
+
     overlay.classList.remove('doors-closing');
     overlay.classList.add('doors-sealed');
+    void playSound(normalizedConfig.sounds.seal, normalizedConfig.sounds.doorVolume);
 
     if (normalizedConfig.text) {
       const textHtml = await createTextCrawlHtml(normalizedConfig.text);
@@ -88,13 +128,7 @@ const handleSceneTransition = async (config: SceneTransitionConfig, controllingU
         overlay.classList.add('text-visible');
       }
 
-      if (normalizedConfig.sounds.typing) {
-        typingSound = await playSound(
-          normalizedConfig.sounds.typing,
-          normalizedConfig.sounds.typingVolume,
-          true
-        );
-      }
+      typingAudio = await startTypingAudio(normalizedConfig.text, normalizedConfig.sounds, controller);
     }
 
     const sceneReady = waitForSceneReady(normalizedConfig.sceneId, normalizedConfig.timing.sceneReadyTimeoutMs);
@@ -102,8 +136,18 @@ const handleSceneTransition = async (config: SceneTransitionConfig, controllingU
       await activateScene(normalizedConfig.sceneId);
     }
 
-    await Promise.all([sceneReady, sleeper(normalizedConfig.timing.textMs)]);
-    await stopSound(typingSound);
+    if (await waitForOrCancel(Promise.all([sceneReady, sleeper(normalizedConfig.timing.textMs)]), controller)) {
+      return await finishCanceledTransition(normalizedConfig, controllingUserId, overlay, typingAudio);
+    }
+
+    await typingAudio?.stop();
+    typingAudio = undefined;
+
+    void playSound(normalizedConfig.sounds.unlock, normalizedConfig.sounds.doorVolume);
+
+    if (await waitForOrCancel(sleeper(normalizedConfig.timing.unlockMs), controller)) {
+      return await finishCanceledTransition(normalizedConfig, controllingUserId, overlay, typingAudio);
+    }
 
     void playSound(normalizedConfig.sounds.open, normalizedConfig.sounds.doorVolume);
     overlay.classList.add('doors-opening');
@@ -111,12 +155,21 @@ const handleSceneTransition = async (config: SceneTransitionConfig, controllingU
     overlay.classList.remove('doors-sealed');
     overlay.classList.remove('doors-closed');
 
-    await sleeper(normalizedConfig.timing.openMs);
+    if (await waitForOrCancel(sleeper(normalizedConfig.timing.openMs), controller)) {
+      return await finishCanceledTransition(normalizedConfig, controllingUserId, overlay, typingAudio);
+    }
 
     overlay.classList.add('text-hidden');
-    await sleeper(normalizedConfig.timing.textFadeMs);
+
+    if (await waitForOrCancel(sleeper(normalizedConfig.timing.textFadeMs), controller)) {
+      return await finishCanceledTransition(normalizedConfig, controllingUserId, overlay, typingAudio);
+    }
   } finally {
-    await stopSound(typingSound);
+    window.removeEventListener('keydown', handleKeyDown, true);
+    if (activeTransitions.get(normalizedConfig.id) === controller) {
+      activeTransitions.delete(normalizedConfig.id);
+    }
+    await typingAudio?.stop();
     overlay.remove();
   }
 };
@@ -197,14 +250,18 @@ const normalizeConfig = (config: SceneTransitionConfig): NormalizedSceneTransiti
     timing: {
       closeMs: config.timing?.closeMs ?? 2200,
       textMs: config.timing?.textMs ?? calculateTextDuration(config.text),
+      unlockMs: config.timing?.unlockMs ?? 700,
       openMs: config.timing?.openMs ?? 2400,
       textFadeMs: config.timing?.textFadeMs ?? 900,
       sceneReadyTimeoutMs: config.timing?.sceneReadyTimeoutMs ?? 10000
     },
     sounds: {
       close: config.sounds?.close ?? '',
+      seal: config.sounds?.seal ?? '',
+      unlock: config.sounds?.unlock ?? '',
       open: config.sounds?.open ?? '',
       typing: config.sounds?.typing ?? '',
+      typingClick: config.sounds?.typingClick ?? '',
       doorVolume: config.sounds?.doorVolume ?? 0.8,
       typingVolume: config.sounds?.typingVolume ?? 0.35
     },
@@ -228,6 +285,59 @@ const removeExistingTransition = (id: string) => {
   Array.from(document.querySelectorAll<HTMLElement>('.anarchist-scene-transition'))
     .filter(overlay => overlay.dataset.anarchistOverlayId === id)
     .forEach(overlay => overlay.remove());
+};
+
+const startTypingAudio = async (
+  text: TextCrawlConfig,
+  sounds: Required<SceneTransitionSounds>,
+  controller: TransitionController
+): Promise<TransitionAudio | undefined> => {
+  if (sounds.typingClick) {
+    return scheduleTypingClicks(text, sounds.typingClick, sounds.typingVolume, controller);
+  }
+
+  if (sounds.typing) {
+    const sound = await playSound(sounds.typing, sounds.typingVolume, true);
+    return { stop: () => stopSound(sound) };
+  }
+
+  return undefined;
+};
+
+const scheduleTypingClicks = (
+  text: TextCrawlConfig,
+  src: string,
+  volume: number,
+  controller: TransitionController
+): TransitionAudio => {
+  const timers: number[] = [];
+  const typingTimeMs = (text.typingTime ?? 2) * 1000;
+  const delayMs = (text.delay ?? 1) * 1000;
+  const lineDelayMs = typingTimeMs + delayMs;
+
+  text.lines.forEach((line, lineIndex) => {
+    if (!line.text.length) {
+      return;
+    }
+
+    const intervalMs = typingTimeMs / line.text.length;
+    const startMs = lineIndex * lineDelayMs;
+    for (let index = 0; index < line.text.length; index++) {
+      if (line.text.charAt(index).trim() === '') {
+        continue;
+      }
+
+      timers.push(window.setTimeout(() => {
+        if (!controller.canceled) {
+          void playSound(src, volume);
+        }
+      }, startMs + ((index + 1) * intervalMs)));
+    }
+  });
+
+  return {
+    stop: () => timers.forEach(timer => window.clearTimeout(timer))
+  };
 };
 
 const playSound = async (src: string, volume: number, loop = false) => {
@@ -262,6 +372,54 @@ const stopSound = async (sound?: TransitionSound) => {
   } catch (error) {
     console.warn('Anarchist Overlay | Unable to stop transition sound.', error);
   }
+};
+
+const finishCanceledTransition = async (
+  config: NormalizedSceneTransitionConfig,
+  controllingUserId: string,
+  overlay: HTMLElement,
+  typingAudio?: TransitionAudio
+) => {
+  await typingAudio?.stop();
+  overlay.classList.add('text-hidden');
+  const sceneReady = waitForSceneReady(config.sceneId, config.timing.sceneReadyTimeoutMs);
+  if ((game as ReadyGame).user.id === controllingUserId) {
+    await activateScene(config.sceneId);
+  }
+  await sceneReady;
+  overlay.remove();
+};
+
+const requestTransitionCancel = async (id: string) => {
+  try {
+    await sceneTransitionSocket?.executeForEveryone('cancelSceneTransition', id);
+  } catch (error) {
+    console.warn(`Anarchist Overlay | Unable to broadcast cancellation for transition "${id}".`, error);
+  }
+};
+
+const createTransitionController = (): TransitionController => {
+  let resolveCancel: () => void;
+  const cancelPromise = new Promise<void>(resolve => {
+    resolveCancel = resolve;
+  });
+
+  return {
+    canceled: false,
+    cancel: function cancel(): void {
+      if (this.canceled) {
+        return;
+      }
+      this.canceled = true;
+      resolveCancel();
+    },
+    cancelPromise
+  };
+};
+
+const waitForOrCancel = async (task: Promise<unknown>, controller: TransitionController) => {
+  await Promise.race([task, controller.cancelPromise]);
+  return controller.canceled;
 };
 
 const sleeper = (time: number) => new Promise(resolve => window.setTimeout(resolve, time));

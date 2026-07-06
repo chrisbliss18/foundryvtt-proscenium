@@ -173,7 +173,7 @@ Renders HTML for a text crawl that can be passed into `createOverlay`.
 
 ### `playSceneTransition(config)`
 
-Plays a prototype scene transition on every connected client. This must be called by a GM. The transition closes animated industrial doors over the current scene, renders optional text crawl content, activates the target scene while the doors are closed, then opens the doors and fades the text.
+Plays a prototype scene transition on every connected client. This must be called by a GM. The transition closes animated industrial doors over the current scene, renders optional text crawl content, activates the target scene while the doors are closed, then opens the doors and fades the text. Press Escape during the transition to cancel the remaining animation and jump to the target scene.
 
 ```js
 const anarchistOverlay = game.modules.get('anarchist-overlay').api;
@@ -203,13 +203,16 @@ await anarchistOverlay.playSceneTransition({
   },
   timing: {
     closeMs: 2200,
+    unlockMs: 700,
     openMs: 2400,
     textFadeMs: 900
   },
   sounds: {
     close: 'modules/anarchist-overlay/sounds/industrial-door-close.ogg',
+    seal: 'modules/anarchist-overlay/sounds/industrial-door-seal.ogg',
+    unlock: 'modules/anarchist-overlay/sounds/industrial-door-unlock.ogg',
     open: 'modules/anarchist-overlay/sounds/industrial-door-open.ogg',
-    typing: 'modules/anarchist-overlay/sounds/mechanical-typing-loop.ogg'
+    typingClick: 'modules/anarchist-overlay/sounds/mechanical-typing-click.ogg'
   }
 });
 ```
@@ -247,14 +250,18 @@ export type SceneTransitionConfig = {
   timing?: {
     closeMs?: number; // door close animation duration
     textMs?: number; // how long text remains before doors open. Defaults from text line timing.
+    unlockMs?: number; // delay after the unlock sound before doors open
     openMs?: number; // door open animation duration
     textFadeMs?: number; // text fade duration after doors open
     sceneReadyTimeoutMs?: number; // max wait for the target scene canvas to be ready
   };
   sounds?: {
     close?: string; // optional local sound path for door close
+    seal?: string; // optional local sound path for doors sealing shut
+    unlock?: string; // optional local sound path before doors open
     open?: string; // optional local sound path for door open
     typing?: string; // optional local looping sound path while text renders
+    typingClick?: string; // optional local click sound path scheduled with typed characters
     doorVolume?: number;
     typingVolume?: number;
   };
