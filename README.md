@@ -228,7 +228,7 @@ briefing: {
   },
   sender: {
     name: 'LT. VERA KAO',
-    subtitle: 'Evergreen Command',
+    sublabel: 'Evergreen Command',
     image: 'systems/lancer/assets/tokens/verakao.webp',
     imageFit: 'cover',
     position: 'left'
@@ -275,7 +275,7 @@ Manual sender:
 sender: {
   name: 'LT. VERA KAO',
   label: 'TRANSMISSION SOURCE',
-  subtitle: 'Evergreen Command',
+  sublabel: 'Evergreen Command',
   image: 'systems/lancer/assets/tokens/verakao.webp',
   imageFit: 'cover',
   imageShape: 'portrait',
@@ -292,7 +292,7 @@ sender: {
     name: 'LT. VERA KAO',
     image: 'portrait'
   },
-  subtitle: 'Evergreen Command',
+  sublabel: 'Evergreen Command',
   position: 'right',
   imageShape: 'circle',
   size: 'compact'
@@ -308,7 +308,7 @@ sender: {
     image: 'token'
   },
   label: 'BLACK CHANNEL',
-  subtitle: 'Encrypted Channel',
+  sublabel: 'Encrypted Channel',
   position: 'top',
   imageShape: 'square',
   size: 'large'
@@ -406,7 +406,7 @@ async function showCommsMessage({
   id = 'comms-message',
   actorName,
   actorUuid,
-  subtitle = 'Secure Channel',
+  sublabel = 'Secure Channel',
   lines,
   style = 'hologram',
   frame = 'lower-third'
@@ -432,7 +432,7 @@ async function showCommsMessage({
           ? { uuid: actorUuid, image: 'portrait' }
           : { name: actorName, image: 'portrait' },
         label: 'COMMS',
-        subtitle,
+        sublabel,
         position: 'left',
         imageShape: 'circle',
         size: 'normal'
@@ -449,7 +449,7 @@ async function showCommsMessage({
 
 await showCommsMessage({
   actorName: 'LT. VERA KAO',
-  subtitle: 'Evergreen Command',
+  sublabel: 'Evergreen Command',
   lines: [
     { text: 'MISSION UPDATE RECEIVED', fontSize: '34px' },
     { text: 'HOSTILE CONTACTS CONFIRMED', fontSize: '24px' }
@@ -559,7 +559,7 @@ type BriefingConfig = {
   sender?: {
     name?: string;
     label?: string;
-    subtitle?: string;
+    sublabel?: string;
     image?: string;
     imageFit?: 'cover' | 'contain';
     imageShape?: 'square' | 'portrait' | 'circle';

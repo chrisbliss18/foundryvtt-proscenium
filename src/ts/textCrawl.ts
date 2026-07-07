@@ -48,7 +48,7 @@ export type TextCrawlSenderSize = 'compact' | 'normal' | 'large';
 export type TextCrawlSenderConfig = {
   name: string;
   label?: string;
-  subtitle?: string;
+  sublabel?: string;
   image?: string;
   imageFit?: TextCrawlSenderImageFit;
   imageShape?: TextCrawlSenderImageShape;
@@ -405,8 +405,8 @@ const validateTextCrawlSenderConfig = (sender?: TextCrawlSenderConfig) => {
     throw new Error('Text crawl sender.label must be a non-empty string.');
   }
 
-  if (sender.subtitle !== undefined && (typeof sender.subtitle !== 'string' || !sender.subtitle.trim())) {
-    throw new Error('Text crawl sender.subtitle must be a non-empty string.');
+  if (sender.sublabel !== undefined && (typeof sender.sublabel !== 'string' || !sender.sublabel.trim())) {
+    throw new Error('Text crawl sender.sublabel must be a non-empty string.');
   }
 
   if (sender.image !== undefined && (typeof sender.image !== 'string' || !sender.image.trim())) {
@@ -451,7 +451,7 @@ const normalizeSenderConfig = (sender?: TextCrawlSenderConfig): NormalizedTextCr
   return {
     name: sender.name.trim(),
     label: sender.label?.trim() ?? 'TRANSMISSION SOURCE',
-    subtitle: sender.subtitle?.trim() ?? '',
+    sublabel: sender.sublabel?.trim() ?? '',
     image,
     imageFit: resolveTextCrawlSenderImageFit(sender.imageFit),
     imageShape: resolveTextCrawlSenderImageShape(sender.imageShape),

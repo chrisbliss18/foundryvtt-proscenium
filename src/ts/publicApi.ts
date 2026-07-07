@@ -65,7 +65,7 @@ export type BriefingSenderActorSelector = {
 export type BriefingSenderConfig = {
   name?: string;
   label?: string;
-  subtitle?: string;
+  sublabel?: string;
   image?: string;
   imageFit?: TextCrawlSenderImageFit;
   imageShape?: TextCrawlSenderImageShape;
@@ -463,7 +463,7 @@ const resolveBriefingSender = async (sender?: BriefingSenderConfig): Promise<Tex
   return {
     name,
     label: sender.label,
-    subtitle: sender.subtitle,
+    sublabel: sender.sublabel,
     image: manualImage || actorImage,
     imageFit: sender.imageFit,
     imageShape: sender.imageShape,

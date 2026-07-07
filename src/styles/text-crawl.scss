@@ -132,7 +132,7 @@
   --text-crawl-sender-image-radius: 4px;
   --text-crawl-sender-label-size: 10px;
   --text-crawl-sender-name-size: clamp(16px, 2vw, 21px);
-  --text-crawl-sender-subtitle-size: clamp(11px, 1.45vw, 14px);
+  --text-crawl-sender-sublabel-size: clamp(11px, 1.45vw, 14px);
 }
 
 .text-crawl__content {
@@ -266,7 +266,7 @@
   --text-crawl-sender-image-size: clamp(44px, 7vw, 64px);
   --text-crawl-sender-label-size: 9px;
   --text-crawl-sender-name-size: clamp(14px, 1.8vw, 18px);
-  --text-crawl-sender-subtitle-size: clamp(10px, 1.25vw, 12px);
+  --text-crawl-sender-sublabel-size: clamp(10px, 1.25vw, 12px);
 }
 
 .text-crawl--sender-size-large {
@@ -278,7 +278,7 @@
   --text-crawl-sender-image-size: clamp(76px, 11vw, 126px);
   --text-crawl-sender-label-size: 11px;
   --text-crawl-sender-name-size: clamp(19px, 2.5vw, 28px);
-  --text-crawl-sender-subtitle-size: clamp(12px, 1.65vw, 16px);
+  --text-crawl-sender-sublabel-size: clamp(12px, 1.65vw, 16px);
 }
 
 .text-crawl__sender-meta {
@@ -304,10 +304,10 @@
   text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.82);
 }
 
-.text-crawl__sender-subtitle {
+.text-crawl__sender-sublabel {
   margin-top: 6px;
   color: rgba(255, 255, 255, 0.72);
-  font-size: var(--text-crawl-sender-subtitle-size);
+  font-size: var(--text-crawl-sender-sublabel-size);
   line-height: 1.15;
   overflow-wrap: anywhere;
 }
