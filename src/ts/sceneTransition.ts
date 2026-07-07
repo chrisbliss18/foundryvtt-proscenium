@@ -2,8 +2,8 @@ import type { ModuleSocket } from './types';
 import type {
   NormalizedSceneTransitionConfig,
   SceneTransitionConfig,
-  SceneTransitionSounds,
   SceneTransitionSocketConfig,
+  SceneTransitionSounds,
   SceneTransitionTiming,
   SceneTransitionType,
   TransitionAudio,
@@ -12,6 +12,7 @@ import type {
 } from './sceneTransitionTypes';
 import { createTextCrawlHtml, getTextCrawlDisplayDurationMs, validateTextCrawlConfig } from './textCrawl';
 import { moduleId } from './constants';
+import { resolvePresentationThemeType, type PresentationThemeType } from './theme';
 import { createTransitionAudioController } from './sceneTransitionAudio';
 import {
   createTransitionOverlay,
@@ -64,8 +65,10 @@ export const playSceneTransition = (socket: ModuleSocket) => async (config: Scen
   try {
     assertGM('play scene transitions');
     resolveSceneTransitionType(config.transition?.type);
+    const themeType = resolvePresentationThemeType(config.theme?.type);
+    resolvePresentationThemeType(config.transition?.theme?.type, themeType);
     if (config.text) {
-      validateTextCrawlConfig(config.text);
+      validateTextCrawlConfig(applyInheritedTextTheme(config.text, config.theme?.type ? themeType : undefined));
     }
     const sceneId = resolveSceneIdByName(config.sceneName);
 
@@ -454,20 +457,31 @@ const waitForSceneReady = (sceneId: string, timeoutMs: number) => {
 
 const normalizeConfig = (config: SceneTransitionSocketConfig): NormalizedSceneTransitionConfig => {
   const transitionType = resolveSceneTransitionType(config.transition?.type);
+  const themeType = resolvePresentationThemeType(config.theme?.type);
+  const transitionThemeType = resolvePresentationThemeType(config.transition?.theme?.type, themeType);
+  const text = config.text
+    ? applyInheritedTextTheme(config.text, config.theme?.type ? themeType : undefined)
+    : undefined;
   const timing = {
     ...defaultTiming,
     ...config.timing,
-    briefingMs: config.timing?.briefingMs ?? getTextCrawlDisplayDurationMs(config.text)
+    briefingMs: config.timing?.briefingMs ?? getTextCrawlDisplayDurationMs(text)
   };
 
   return {
     sceneId: config.sceneId,
     sceneName: config.sceneName,
     id: config.id ?? 'scene-transition',
-    transition: {
-      type: transitionType
+    theme: {
+      type: themeType
     },
-    text: config.text,
+    transition: {
+      type: transitionType,
+      theme: {
+        type: transitionThemeType
+      }
+    },
+    text,
     timing,
     sounds: {
       ...defaultSounds,
@@ -475,6 +489,22 @@ const normalizeConfig = (config: SceneTransitionSocketConfig): NormalizedSceneTr
     },
     aboveUi: config.aboveUi ?? true,
     blockInteractions: config.blockInteractions ?? true
+  };
+};
+
+const applyInheritedTextTheme = (
+  text: NonNullable<SceneTransitionConfig['text']>,
+  themeType?: PresentationThemeType
+) => {
+  if (text.theme?.type || !themeType) {
+    return text;
+  }
+
+  return {
+    ...text,
+    theme: {
+      type: themeType
+    }
   };
 };
 

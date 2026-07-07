@@ -61,9 +61,11 @@ const textHtml = await anarchistOverlay.createTextCrawlHtml(textConfig);
 await anarchistOverlay.createOverlay(overlayConfig, textHtml);
 ```
 
-Text crawl frames can be set to `cinematic-bars`, `horizontal-bar`, `lower-third`, `terminal-panel`, `alert-banner`, `chyron`, `mission-card`, `scanline-panel`, or `none`.
+Text crawl frames can be set to `cinematic-bars`, `horizontal-bar`, `lower-third`, `panel`, `mission-card`, `chyron`, or `none`.
 
-Text crawl effects can be set to `typewriter`, `scroll`, `stagger-fade`, `decode`, `wipe`, or `none`. Frames default to `typewriter`, except `chyron`, which defaults to `scroll`. The `scroll` effect is supported by `chyron`, `horizontal-bar`, and `alert-banner`.
+Themes can be set to `industrial`, `terminal`, `scanline`, `alert`, or `clean`. Frames describe layout; themes describe the visual treatment. The default text theme depends on the frame: `panel` and `chyron` default to `terminal`, `none` and `cinematic-bars` default to `clean`, and the other frames default to `industrial`.
+
+Text crawl effects can be set to `typewriter`, `scroll`, `stagger-fade`, `decode`, `wipe`, or `none`. Frames default to `typewriter`, except `chyron`, which defaults to `scroll`. The `scroll` effect is supported by `chyron` and `horizontal-bar`.
 
 ### Horizontal Bar
 
@@ -78,6 +80,9 @@ const textHtml = await anarchistOverlay.createTextCrawlHtml({
   maxWidth: '720px',
   frame: {
     type: 'horizontal-bar'
+  },
+  theme: {
+    type: 'industrial'
   },
   lines: [
     {
@@ -146,11 +151,18 @@ Other frame types use the same text config shape:
 
 ```js
 frame: { type: 'lower-third' }
-frame: { type: 'terminal-panel' }
-frame: { type: 'alert-banner' }
+frame: { type: 'panel' }
 frame: { type: 'chyron' }
 frame: { type: 'mission-card' }
-frame: { type: 'scanline-panel' }
+```
+
+Themes can be mixed with compatible frames:
+
+```js
+frame: { type: 'panel' }, theme: { type: 'terminal' }
+frame: { type: 'panel' }, theme: { type: 'scanline' }
+frame: { type: 'horizontal-bar' }, theme: { type: 'alert' }
+frame: { type: 'mission-card' }, theme: { type: 'scanline' }
 ```
 
 ### Additional Effects
@@ -164,6 +176,9 @@ const textHtml = await anarchistOverlay.createTextCrawlHtml({
   maxWidth: '760px',
   frame: {
     type: 'mission-card'
+  },
+  theme: {
+    type: 'industrial'
   },
   effect: {
     type: 'stagger-fade',
@@ -182,7 +197,10 @@ const textHtml = await anarchistOverlay.createTextCrawlHtml({
 const textHtml = await anarchistOverlay.createTextCrawlHtml({
   maxWidth: '820px',
   frame: {
-    type: 'scanline-panel'
+    type: 'panel'
+  },
+  theme: {
+    type: 'scanline'
   },
   effect: {
     type: 'decode',
@@ -202,6 +220,9 @@ const textHtml = await anarchistOverlay.createTextCrawlHtml({
   textAlign: 'center',
   frame: {
     type: 'horizontal-bar'
+  },
+  theme: {
+    type: 'alert'
   },
   effect: {
     type: 'wipe',
@@ -330,6 +351,9 @@ const anarchistOverlay = game.modules.get('anarchist-overlay').api;
 
 await anarchistOverlay.playSceneTransition({
   sceneName: 'TARGET SCENE NAME',
+  theme: {
+    type: 'industrial'
+  },
   transition: {
     type: 'industrial-doors'
   },
@@ -370,6 +394,9 @@ For a simple fade transition:
 ```js
 await anarchistOverlay.playSceneTransition({
   sceneName: 'TARGET SCENE NAME',
+  theme: {
+    type: 'clean'
+  },
   transition: {
     type: 'fade'
   },
@@ -406,8 +433,14 @@ For a top-and-bottom shutter transition:
 ```js
 await anarchistOverlay.playSceneTransition({
   sceneName: 'TARGET SCENE NAME',
+  theme: {
+    type: 'terminal'
+  },
   transition: {
-    type: 'horizontal-shutter'
+    type: 'horizontal-shutter',
+    theme: {
+      type: 'scanline'
+    }
   },
   text: {
     typingTime: 1.5,
@@ -416,7 +449,10 @@ await anarchistOverlay.playSceneTransition({
     textAlign: 'center',
     maxWidth: '760px',
     frame: {
-      type: 'terminal-panel'
+      type: 'panel'
+    },
+    theme: {
+      type: 'terminal'
     },
     lines: [
       {
@@ -432,7 +468,7 @@ await anarchistOverlay.playSceneTransition({
 });
 ```
 
-The industrial door animation and bundled transition sounds are used by default. Pass `transition`, `timing`, or `sounds` only when you want to override the defaults.
+The industrial door animation and bundled transition sounds are used by default. Pass `theme`, `transition`, `timing`, or `sounds` only when you want to override the defaults. A top-level `theme` is inherited by transition text unless `text.theme` overrides it; `transition.theme` can separately theme the transition shell.
 
 Bundled sound defaults live under `modules/anarchist-overlay/sounds/`: `industrial-door-close.ogg`, `industrial-door-seal.ogg`, `industrial-door-unlock.ogg`, `industrial-door-open.ogg`, and `mechanical-typing-click.ogg`.
 
@@ -458,11 +494,15 @@ export type TextCrawlFrameType =
   | 'cinematic-bars'
   | 'horizontal-bar'
   | 'lower-third'
-  | 'terminal-panel'
-  | 'alert-banner'
   | 'chyron'
-  | 'mission-card'
-  | 'scanline-panel';
+  | 'panel'
+  | 'mission-card';
+export type PresentationThemeType =
+  | 'industrial'
+  | 'terminal'
+  | 'scanline'
+  | 'alert'
+  | 'clean';
 export type TextCrawlEffectType =
   | 'typewriter'
   | 'scroll'
@@ -483,6 +523,9 @@ export type TextCrawlConfig = {
   frame?: {
     type?: TextCrawlFrameType; // defaults to 'cinematic-bars'
   };
+  theme?: {
+    type?: PresentationThemeType; // defaults from the frame type
+  };
   effect?: {
     type?: TextCrawlEffectType; // defaults to 'typewriter', or 'scroll' for the 'chyron' frame
     duration?: number; // effect duration in seconds. Scroll default: 18
@@ -500,8 +543,14 @@ export type SceneTransitionType = 'industrial-doors' | 'horizontal-shutter' | 'f
 export type SceneTransitionConfig = {
   sceneName: string; // target scene name. Must match exactly and be unique.
   id?: string; // optional transition id, defaults to 'scene-transition'
+  theme?: {
+    type?: PresentationThemeType; // default theme for transition text when text.theme is not set
+  };
   transition?: {
     type?: SceneTransitionType; // defaults to 'industrial-doors'
+    theme?: {
+      type?: PresentationThemeType; // defaults from the top-level theme, then 'industrial'
+    };
   };
   text?: TextCrawlConfig; // optional text crawl config rendered while doors are closed
   timing?: {

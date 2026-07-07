@@ -1,14 +1,17 @@
 import type { TextCrawlConfig } from './textCrawl';
+import type { PresentationThemeConfig } from './theme';
 
 export type SceneTransitionType = 'industrial-doors' | 'horizontal-shutter' | 'fade';
 
 export type SceneTransitionAnimationConfig = {
   type?: SceneTransitionType;
+  theme?: PresentationThemeConfig;
 };
 
 export type SceneTransitionConfig = {
   sceneName: string;
   id?: string;
+  theme?: PresentationThemeConfig;
   transition?: SceneTransitionAnimationConfig;
   text?: TextCrawlConfig;
   timing?: SceneTransitionTiming;
@@ -44,9 +47,13 @@ export type SceneTransitionSounds = {
 };
 
 export type NormalizedSceneTransitionConfig = Required<
-  Omit<SceneTransitionSocketConfig, 'text' | 'transition' | 'timing' | 'sounds'>
+  Omit<SceneTransitionSocketConfig, 'text' | 'theme' | 'transition' | 'timing' | 'sounds'>
 > & {
-  transition: Required<SceneTransitionAnimationConfig>;
+  theme: Required<PresentationThemeConfig>;
+  transition: {
+    type: SceneTransitionType;
+    theme: Required<PresentationThemeConfig>;
+  };
   text?: TextCrawlConfig;
   timing: Required<SceneTransitionTiming>;
   sounds: Required<SceneTransitionSounds>;

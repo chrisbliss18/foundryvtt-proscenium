@@ -11,6 +11,7 @@ export const createTransitionOverlay = (config: NormalizedSceneTransitionConfig)
     'anarchist-overlay',
     'anarchist-scene-transition',
     `scene-transition--${config.transition.type}`,
+    `scene-transition--theme-${config.transition.theme.type}`,
     config.transition.type === 'industrial-doors' ? 'doors-open' : '',
     config.transition.type === 'horizontal-shutter' ? 'shutters-open' : '',
     config.aboveUi ? 'above-ui' : '',
