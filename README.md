@@ -476,6 +476,75 @@ Scene transitions use theme-aware bundled sound defaults. Door sounds come from 
 
 The `sceneName` value must match exactly one scene. If no scene matches, or if multiple scenes share the same name, the GM receives an error notification and the transition is not started.
 
+### Experimental Industrial Sounds
+
+The default industrial door sounds are unchanged. Two alternate industrial sound banks are bundled for testing and can be selected with `sounds`.
+
+Heavy mechanical:
+
+```js
+const ao = game.modules.get('anarchist-overlay').api;
+
+await ao.playSceneTransition({
+  sceneName: 'TARGET SCENE NAME',
+  transition: {
+    type: 'industrial-doors',
+    theme: { type: 'industrial' }
+  },
+  text: {
+    alignX: 'center',
+    textAlign: 'center',
+    maxWidth: '820px',
+    frame: { type: 'mission-card' },
+    theme: { type: 'industrial' },
+    lines: [
+      { text: 'HEAVY DOOR TEST', fontSize: '44px' },
+      { text: 'MECHANICAL OVERRIDE ENGAGED', fontSize: '26px' }
+    ]
+  },
+  sounds: {
+    doorClose: 'modules/anarchist-overlay/sounds/industrial-heavy-close.ogg',
+    doorSeal: 'modules/anarchist-overlay/sounds/industrial-heavy-seal.ogg',
+    doorUnlock: 'modules/anarchist-overlay/sounds/industrial-heavy-unlock.ogg',
+    doorOpen: 'modules/anarchist-overlay/sounds/industrial-heavy-open.ogg',
+    doorVolume: 0.82
+  }
+});
+```
+
+Harsh mechanical:
+
+```js
+const ao = game.modules.get('anarchist-overlay').api;
+
+await ao.playSceneTransition({
+  sceneName: 'TARGET SCENE NAME',
+  transition: {
+    type: 'industrial-doors',
+    theme: { type: 'industrial' }
+  },
+  text: {
+    alignX: 'center',
+    textAlign: 'center',
+    maxWidth: '820px',
+    frame: { type: 'horizontal-bar' },
+    theme: { type: 'alert' },
+    effect: { type: 'wipe', duration: 0.85, lineDelay: 0.18 },
+    lines: [
+      { text: 'HARSH DOOR TEST', fontSize: '40px' },
+      { text: 'BULKHEAD CYCLING', fontSize: '24px' }
+    ]
+  },
+  sounds: {
+    doorClose: 'modules/anarchist-overlay/sounds/industrial-harsh-close.ogg',
+    doorSeal: 'modules/anarchist-overlay/sounds/industrial-harsh-seal.ogg',
+    doorUnlock: 'modules/anarchist-overlay/sounds/industrial-harsh-unlock.ogg',
+    doorOpen: 'modules/anarchist-overlay/sounds/industrial-harsh-open.ogg',
+    doorVolume: 0.72
+  }
+});
+```
+
 ### Macro Helper Patterns
 
 These are plain macro helpers layered over the module API. They are useful if you want consistent formatting without repeating the same config in every scene macro.
