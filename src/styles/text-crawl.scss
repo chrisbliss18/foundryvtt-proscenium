@@ -40,10 +40,84 @@
   }
 }
 
+@keyframes staggerFadeLine {
+  from {
+    opacity: 0;
+    filter: blur(5px);
+    transform: translate3d(0, 0.35em, 0);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wipeLine {
+  from {
+    opacity: 0.7;
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes decodeResolve {
+  0%,
+  58% {
+    opacity: 0;
+    filter: blur(2px);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes decodeScramble {
+  0% {
+    opacity: 1;
+    transform: translate3d(-0.08em, 0, 0);
+  }
+
+  18% {
+    transform: translate3d(0.08em, 0, 0);
+  }
+
+  36% {
+    transform: translate3d(-0.04em, 0, 0);
+  }
+
+  64% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes scanlineSweep {
+  from {
+    transform: translateY(-100%);
+  }
+
+  to {
+    transform: translateY(300%);
+  }
+}
+
 .text-crawl {
   position: relative;
   --text-crawl-scroll-duration: 18s;
   --text-crawl-scroll-iteration-count: infinite;
+  --text-crawl-line-effect-duration: 0.9s;
 }
 
 .text-crawl__content {
@@ -213,6 +287,90 @@
   }
 }
 
+.text-crawl--mission-card {
+  display: block;
+  width: 100%;
+
+  .text-crawl__text-block {
+    position: relative;
+    box-sizing: border-box;
+    min-width: min(620px, calc(100vw - 32px));
+    padding: 18px 24px 20px;
+    border: 1px solid rgba(255, 216, 87, 0.8);
+    border-radius: 6px;
+    background:
+      linear-gradient(180deg, rgba(255, 216, 87, 0.12), rgba(255, 216, 87, 0) 34%),
+      linear-gradient(135deg, rgba(9, 12, 13, 0.96), rgba(18, 26, 27, 0.92));
+    box-shadow:
+      0 16px 34px rgba(0, 0, 0, 0.58),
+      inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    overflow: hidden;
+  }
+
+  .text-crawl__text-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 4px;
+    background:
+      linear-gradient(90deg, rgba(255, 216, 87, 0.95), rgba(96, 238, 194, 0.8) 48%, rgba(255, 216, 87, 0.2));
+  }
+}
+
+.text-crawl--scanline-panel {
+  display: block;
+  width: 100%;
+
+  .text-crawl__text-block {
+    position: relative;
+    box-sizing: border-box;
+    padding: 20px 24px;
+    border: 1px solid rgba(96, 238, 194, 0.68);
+    background:
+      linear-gradient(180deg, rgba(3, 11, 13, 0.96), rgba(6, 20, 22, 0.92)),
+      repeating-linear-gradient(0deg, rgba(96, 238, 194, 0.08) 0 1px, rgba(96, 238, 194, 0) 1px 8px);
+    box-shadow:
+      0 0 30px rgba(0, 0, 0, 0.62),
+      inset 0 0 28px rgba(96, 238, 194, 0.08);
+    overflow: hidden;
+  }
+
+  .text-crawl__text-block::before,
+  .text-crawl__text-block::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .text-crawl__text-block::before {
+    inset: 0;
+    border: 1px solid rgba(255, 216, 87, 0.26);
+  }
+
+  .text-crawl__text-block::after {
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 34%;
+    background: linear-gradient(180deg, rgba(96, 238, 194, 0), rgba(96, 238, 194, 0.14), rgba(96, 238, 194, 0));
+    animation: scanlineSweep 3.4s linear infinite;
+  }
+
+  .text-crawl-line-row {
+    position: relative;
+    z-index: 1;
+  }
+
+  .text-crawl-line-box {
+    color: #d6fff3;
+    text-shadow:
+      2px 2px 0 rgba(0, 0, 0, 0.78),
+      0 0 10px rgba(96, 238, 194, 0.36);
+  }
+}
+
 .anarchist-scene-transition__text .text-crawl--horizontal-bar,
 .anarchist-scene-transition__text .text-crawl--alert-banner,
 .anarchist-scene-transition__text .text-crawl--chyron {
@@ -246,6 +404,42 @@
 
 .text-crawl--effect-none .text-crawl-line-box::after {
   display: none;
+}
+
+.text-crawl--effect-stagger-fade,
+.text-crawl--effect-decode,
+.text-crawl--effect-wipe {
+  .text-crawl-line-box::after {
+    display: none;
+  }
+}
+
+.text-crawl--effect-stagger-fade .text-crawl-line {
+  opacity: 0;
+  animation: staggerFadeLine var(--text-crawl-line-effect-duration) ease-out var(--line-start-delay) both;
+}
+
+.text-crawl--effect-wipe .text-crawl-line {
+  clip-path: inset(0 100% 0 0);
+  animation: wipeLine var(--text-crawl-line-effect-duration) cubic-bezier(0.32, 0.72, 0, 1) var(--line-start-delay) both;
+}
+
+.text-crawl--effect-decode .text-crawl-line {
+  position: relative;
+  opacity: 0;
+  animation: decodeResolve var(--text-crawl-line-effect-duration) ease-out var(--line-start-delay) both;
+}
+
+.text-crawl--effect-decode .text-crawl-line::before {
+  content: attr(data-scramble);
+  position: absolute;
+  inset: 0;
+  color: #60eec2;
+  opacity: 0;
+  text-shadow:
+    2px 2px 0 rgba(0, 0, 0, 0.78),
+    0 0 10px rgba(96, 238, 194, 0.5);
+  animation: decodeScramble var(--text-crawl-line-effect-duration) steps(2, end) var(--line-start-delay) both;
 }
 
 .text-crawl__scroll-window {

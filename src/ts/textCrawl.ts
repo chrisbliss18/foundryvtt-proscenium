@@ -7,8 +7,16 @@ export type TextCrawlFrameType =
   | 'lower-third'
   | 'terminal-panel'
   | 'alert-banner'
-  | 'chyron';
-export type TextCrawlEffectType = 'typewriter' | 'scroll' | 'none';
+  | 'chyron'
+  | 'mission-card'
+  | 'scanline-panel';
+export type TextCrawlEffectType =
+  | 'typewriter'
+  | 'scroll'
+  | 'stagger-fade'
+  | 'decode'
+  | 'wipe'
+  | 'none';
 export type TextCrawlAlignment = 'start' | 'center' | 'end';
 
 export type TextCrawlFrameConfig = {
@@ -18,6 +26,7 @@ export type TextCrawlFrameConfig = {
 export type TextCrawlEffectConfig = {
   type?: TextCrawlEffectType;
   duration?: number;
+  lineDelay?: number;
   loop?: boolean;
   separator?: string;
 };
@@ -46,6 +55,7 @@ type NormalizedTextCrawlLineConfig = Required<TextCrawlLineConfig>;
 type NormalizedTextCrawlEffectConfig = {
   type: TextCrawlEffectType;
   duration: number;
+  lineDelay: number;
   loop: boolean;
   separator: string;
 };
@@ -66,9 +76,11 @@ type NormalizedConfig = {
   effectTypeClass: string;
   isScrollEffect: boolean;
   isTypewriterEffect: boolean;
+  isStaticEffect: boolean;
   showCinematicBars: boolean;
   scrollDuration: number;
   scrollIterationCount: string;
+  lineEffectDuration: number;
   lines: NormalizedTextCrawlLineConfig[];
   glitchEffect: { time: number } | false;
 };
@@ -79,6 +91,9 @@ const defaultTypewriterDelaySeconds = 1;
 const defaultScrollDurationSeconds = 18;
 const defaultStaticDisplaySeconds = 2.5;
 const defaultScrollSeparator = ' // ';
+const defaultLineEffectDurationSeconds = 0.9;
+const defaultLineEffectDelaySeconds = 0.24;
+const decodeCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%@&<>/\\[]{}';
 
 export const createTextCrawlHtml = async (config: TextCrawlConfig) => {
   const normalizedConfig = normalizeConfig(config);
@@ -89,9 +104,11 @@ export const createTextCrawlHtml = async (config: TextCrawlConfig) => {
       typingTime: normalizedConfig.typingTime,
       textLength: line.text.length,
       cursorDelay: (normalizedConfig.typingTime + normalizedConfig.delay) * 2,
-      startDelay: (normalizedConfig.delay + normalizedConfig.typingTime) * index,
+      startDelay: getLineStartDelay(normalizedConfig, index),
       isLastLine: index === normalizedConfig.lines.length - 1,
       isTypewriterEffect: normalizedConfig.isTypewriterEffect,
+      isStaticEffect: normalizedConfig.isStaticEffect,
+      scrambleText: createScrambleText(line.text, index),
       glitchEffect: normalizedConfig.glitchEffect
     })),
     scrollLines: normalizedConfig.lines.map(line => ({
@@ -111,11 +128,13 @@ export const resolveTextCrawlFrameType = (frameType?: string): TextCrawlFrameTyp
     || resolvedFrameType === 'terminal-panel'
     || resolvedFrameType === 'alert-banner'
     || resolvedFrameType === 'chyron'
+    || resolvedFrameType === 'mission-card'
+    || resolvedFrameType === 'scanline-panel'
   ) {
     return resolvedFrameType;
   }
 
-  throw new Error(`Unknown text crawl frame type "${resolvedFrameType}". Expected "none", "cinematic-bars", "horizontal-bar", "lower-third", "terminal-panel", "alert-banner", or "chyron".`);
+  throw new Error(`Unknown text crawl frame type "${resolvedFrameType}". Expected "none", "cinematic-bars", "horizontal-bar", "lower-third", "terminal-panel", "alert-banner", "chyron", "mission-card", or "scanline-panel".`);
 };
 
 export const resolveTextCrawlEffectType = (
@@ -126,12 +145,15 @@ export const resolveTextCrawlEffectType = (
   if (
     resolvedEffectType === 'typewriter'
     || resolvedEffectType === 'scroll'
+    || resolvedEffectType === 'stagger-fade'
+    || resolvedEffectType === 'decode'
+    || resolvedEffectType === 'wipe'
     || resolvedEffectType === 'none'
   ) {
     return resolvedEffectType;
   }
 
-  throw new Error(`Unknown text crawl effect type "${resolvedEffectType}". Expected "typewriter", "scroll", or "none".`);
+  throw new Error(`Unknown text crawl effect type "${resolvedEffectType}". Expected "typewriter", "scroll", "stagger-fade", "decode", "wipe", or "none".`);
 };
 
 export const validateTextCrawlConfig = (config: TextCrawlConfig) => {
@@ -186,6 +208,12 @@ export const getTextCrawlDisplayDurationMs = (text?: TextCrawlConfig) => {
     return Math.max(defaultStaticDisplaySeconds, text.lines.length * 0.8) * 1000;
   }
 
+  if (isLineAnimationEffect(effectType)) {
+    const duration = text.effect?.duration ?? getDefaultEffectDurationSeconds(effectType);
+    const lineDelay = text.effect?.lineDelay ?? getDefaultEffectLineDelaySeconds(effectType);
+    return (((text.lines.length - 1) * lineDelay) + duration + 1) * 1000;
+  }
+
   const typingTime = text.typingTime ?? defaultTypewriterDurationSeconds;
   const delay = text.delay ?? defaultTypewriterDelaySeconds;
   const totalSeconds = ((text.lines.length - 1) * (typingTime + delay)) + typingTime + 1;
@@ -201,7 +229,8 @@ const normalizeConfig = (config: TextCrawlConfig): NormalizedConfig => {
   validateTextCrawlEffectFrameCompatibility(frameType, effectType);
   const effect = {
     type: effectType,
-    duration: config.effect?.duration ?? defaultScrollDurationSeconds,
+    duration: config.effect?.duration ?? getDefaultEffectDurationSeconds(effectType),
+    lineDelay: config.effect?.lineDelay ?? getDefaultEffectLineDelaySeconds(effectType),
     loop: config.effect?.loop ?? effectType === 'scroll',
     separator: config.effect?.separator ?? defaultScrollSeparator
   };
@@ -224,21 +253,27 @@ const normalizeConfig = (config: TextCrawlConfig): NormalizedConfig => {
     effectTypeClass: `text-crawl--effect-${effectType}`,
     isScrollEffect: effectType === 'scroll',
     isTypewriterEffect: effectType === 'typewriter',
+    isStaticEffect: effectType === 'none',
     showCinematicBars: frameType === 'cinematic-bars',
     scrollDuration: effect.duration,
     scrollIterationCount: effect.loop ? 'infinite' : '1',
+    lineEffectDuration: effect.duration,
     lines: config.lines.map(line => ({text: line.text, fontSize: line.fontSize ?? '32px'})),
     glitchEffect: config.glitchEffect ?? false
   };
 }
 
 const validateTextCrawlEffectConfig = (effect?: TextCrawlEffectConfig) => {
-  if (effect?.duration === undefined) {
+  if (!effect) {
     return;
   }
 
-  if (!Number.isFinite(effect.duration) || effect.duration <= 0) {
+  if (effect.duration !== undefined && (!Number.isFinite(effect.duration) || effect.duration <= 0)) {
     throw new Error('Text crawl effect duration must be a positive number of seconds.');
+  }
+
+  if (effect.lineDelay !== undefined && (!Number.isFinite(effect.lineDelay) || effect.lineDelay < 0)) {
+    throw new Error('Text crawl effect lineDelay must be a non-negative number of seconds.');
   }
 };
 
@@ -255,4 +290,62 @@ const validateTextCrawlEffectFrameCompatibility = (
 
 const isScrollCompatibleFrameType = (frameType: TextCrawlFrameType) => {
   return frameType === 'chyron' || frameType === 'horizontal-bar' || frameType === 'alert-banner';
+};
+
+const getDefaultEffectDurationSeconds = (effectType: TextCrawlEffectType) => {
+  if (effectType === 'scroll') {
+    return defaultScrollDurationSeconds;
+  }
+  if (effectType === 'decode') {
+    return 1.15;
+  }
+  if (effectType === 'wipe') {
+    return 0.85;
+  }
+  if (effectType === 'stagger-fade') {
+    return 0.75;
+  }
+
+  return defaultLineEffectDurationSeconds;
+};
+
+const getDefaultEffectLineDelaySeconds = (effectType: TextCrawlEffectType) => {
+  if (effectType === 'decode') {
+    return 0.22;
+  }
+  if (effectType === 'wipe') {
+    return 0.18;
+  }
+  if (effectType === 'stagger-fade') {
+    return 0.28;
+  }
+
+  return defaultLineEffectDelaySeconds;
+};
+
+const getLineStartDelay = (config: NormalizedConfig, index: number) => {
+  if (config.isTypewriterEffect) {
+    return (config.delay + config.typingTime) * index;
+  }
+
+  if (isLineAnimationEffect(config.effect.type)) {
+    return config.effect.lineDelay * index;
+  }
+
+  return 0;
+};
+
+const isLineAnimationEffect = (effectType: TextCrawlEffectType) => {
+  return effectType === 'stagger-fade' || effectType === 'decode' || effectType === 'wipe';
+};
+
+const createScrambleText = (text: string, lineIndex: number) => {
+  return Array.from(text, (character, characterIndex) => {
+    if (character.trim() === '') {
+      return character;
+    }
+
+    const scrambleIndex = ((lineIndex + 1) * 17 + characterIndex * 7) % decodeCharacters.length;
+    return decodeCharacters.charAt(scrambleIndex);
+  }).join('');
 };

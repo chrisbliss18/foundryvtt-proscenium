@@ -8,6 +8,7 @@
     --text-crawl-max-width: {{maxWidth}};
     --text-crawl-scroll-duration: {{scrollDuration}}s;
     --text-crawl-scroll-iteration-count: {{scrollIterationCount}};
+    --text-crawl-line-effect-duration: {{lineEffectDuration}}s;
   "
 >
   {{#if showCinematicBars}}
@@ -38,6 +39,7 @@
                 --start-delay: {{startDelay}}s;
                 --cursor-delay: {{startDelay}}s;
                 --cursor-iterations: {{#if isLastLine}}infinite{{else}}{{cursorDelay}}{{/if}};
+                --line-start-delay: {{startDelay}}s;
                 {{#if glitchEffect}}
                   --glitchTime: {{glitchEffect.time}}s;
                 {{/if}}
@@ -51,12 +53,15 @@
                       typing var(--typing-time) steps(var(--text-length)) var(--start-delay) normal backwards
                       {{#if glitchEffect}}, glitch {{glitchEffect.time}}s infinite{{/if}};
                   {{else}}
-                    {{#if glitchEffect}}
-                      animation: glitch {{glitchEffect.time}}s infinite;
+                    {{#if isStaticEffect}}
+                      {{#if glitchEffect}}
+                        animation: glitch {{glitchEffect.time}}s infinite;
+                      {{/if}}
                     {{/if}}
                   {{/if}}
                 "
                 class="text-crawl-line{{#if glitchEffect}} glitch{{/if}}"
+                data-scramble="{{scrambleText}}"
               >
                 {{#if glitchEffect}}
                   <span aria-hidden="true">{{text}}</span>

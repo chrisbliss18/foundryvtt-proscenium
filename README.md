@@ -61,9 +61,9 @@ const textHtml = await anarchistOverlay.createTextCrawlHtml(textConfig);
 await anarchistOverlay.createOverlay(overlayConfig, textHtml);
 ```
 
-Text crawl frames can be set to `cinematic-bars`, `horizontal-bar`, `lower-third`, `terminal-panel`, `alert-banner`, `chyron`, or `none`.
+Text crawl frames can be set to `cinematic-bars`, `horizontal-bar`, `lower-third`, `terminal-panel`, `alert-banner`, `chyron`, `mission-card`, `scanline-panel`, or `none`.
 
-Text crawl effects can be set to `typewriter`, `scroll`, or `none`. Frames default to `typewriter`, except `chyron`, which defaults to `scroll`. The `scroll` effect is supported by `chyron`, `horizontal-bar`, and `alert-banner`.
+Text crawl effects can be set to `typewriter`, `scroll`, `stagger-fade`, `decode`, `wipe`, or `none`. Frames default to `typewriter`, except `chyron`, which defaults to `scroll`. The `scroll` effect is supported by `chyron`, `horizontal-bar`, and `alert-banner`.
 
 ### Horizontal Bar
 
@@ -149,6 +149,70 @@ frame: { type: 'lower-third' }
 frame: { type: 'terminal-panel' }
 frame: { type: 'alert-banner' }
 frame: { type: 'chyron' }
+frame: { type: 'mission-card' }
+frame: { type: 'scanline-panel' }
+```
+
+### Additional Effects
+
+`stagger-fade`, `decode`, and `wipe` use `effect.duration` for each line and `effect.lineDelay` for the pause between lines.
+
+```js
+const textHtml = await anarchistOverlay.createTextCrawlHtml({
+  alignX: 'center',
+  textAlign: 'start',
+  maxWidth: '760px',
+  frame: {
+    type: 'mission-card'
+  },
+  effect: {
+    type: 'stagger-fade',
+    duration: 0.75,
+    lineDelay: 0.28
+  },
+  lines: [
+    { text: 'MISSION 1: BUG HUNT', fontSize: '42px' },
+    { text: 'COMBAT: TRAPDOOR SPIDER', fontSize: '28px' },
+    { text: 'OBJECTIVE: SEARCH AND DESTROY', fontSize: '24px' }
+  ]
+});
+```
+
+```js
+const textHtml = await anarchistOverlay.createTextCrawlHtml({
+  maxWidth: '820px',
+  frame: {
+    type: 'scanline-panel'
+  },
+  effect: {
+    type: 'decode',
+    duration: 1.15,
+    lineDelay: 0.22
+  },
+  lines: [
+    { text: '>//DROP ZONE TELEMETRY ACQUIRED', fontSize: '30px' },
+    { text: '>//HOSTILE SIGNATURES DETECTED', fontSize: '24px' }
+  ]
+});
+```
+
+```js
+const textHtml = await anarchistOverlay.createTextCrawlHtml({
+  alignX: 'center',
+  textAlign: 'center',
+  frame: {
+    type: 'horizontal-bar'
+  },
+  effect: {
+    type: 'wipe',
+    duration: 0.85,
+    lineDelay: 0.18
+  },
+  lines: [
+    { text: 'ARRIVAL VECTOR CONFIRMED', fontSize: '34px' },
+    { text: 'DROP ZONE READY', fontSize: '24px' }
+  ]
+});
 ```
 
 Effect:
@@ -396,8 +460,16 @@ export type TextCrawlFrameType =
   | 'lower-third'
   | 'terminal-panel'
   | 'alert-banner'
-  | 'chyron';
-export type TextCrawlEffectType = 'typewriter' | 'scroll' | 'none';
+  | 'chyron'
+  | 'mission-card'
+  | 'scanline-panel';
+export type TextCrawlEffectType =
+  | 'typewriter'
+  | 'scroll'
+  | 'stagger-fade'
+  | 'decode'
+  | 'wipe'
+  | 'none';
 export type TextCrawlAlignment = 'start' | 'center' | 'end';
 
 export type TextCrawlConfig = {
@@ -413,7 +485,8 @@ export type TextCrawlConfig = {
   };
   effect?: {
     type?: TextCrawlEffectType; // defaults to 'typewriter', or 'scroll' for the 'chyron' frame
-    duration?: number; // scroll animation duration in seconds. Default: 18
+    duration?: number; // effect duration in seconds. Scroll default: 18
+    lineDelay?: number; // delay in seconds between animated lines for stagger-fade, decode, and wipe.
     loop?: boolean; // should scroll repeat. Defaults to true for scroll.
     separator?: string; // text between scroll items. Default: ' // '
   };
