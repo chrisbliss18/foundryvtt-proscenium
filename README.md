@@ -522,7 +522,7 @@ await ao.playSceneTransition({
 The bulkhead bank is derived from CC0 Freesound sources:
 
 - `industrial-bulkhead-close.ogg`: [lezaarth, "Electric Door"](https://freesound.org/people/lezaarth/sounds/316092/), reversed from about 1.0s to 3.6s for movement without the terminal impact.
-- `industrial-bulkhead-seal.ogg`: [SecureSubset, "Large Metal Bunker Doors, Opening and Closing, Resonances"](https://freesound.org/people/SecureSubset/sounds/845666/), cut from about 8.5s to 11.5s.
+- `industrial-bulkhead-seal.ogg`: [SecureSubset, "Large Metal Bunker Doors, Opening and Closing, Resonances"](https://freesound.org/people/SecureSubset/sounds/845666/), cut from about 9.5s to 11.5s so the impact starts immediately when the seal cue plays.
 - `industrial-bulkhead-unlock.ogg`: [Velvorn, "sas_fermeture.WAV"](https://freesound.org/people/Velvorn/sounds/95772/), cut from the opening 1.55s.
 - `industrial-bulkhead-open.ogg`: [lezaarth, "Electric Door"](https://freesound.org/people/lezaarth/sounds/316092/), cut from about 1.0s to 5.1s.
 
