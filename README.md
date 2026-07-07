@@ -274,10 +274,13 @@ Manual sender:
 ```js
 sender: {
   name: 'LT. VERA KAO',
+  label: 'TRANSMISSION SOURCE',
   subtitle: 'Evergreen Command',
   image: 'systems/lancer/assets/tokens/verakao.webp',
   imageFit: 'cover',
-  position: 'left'
+  imageShape: 'portrait',
+  position: 'left',
+  size: 'normal'
 }
 ```
 
@@ -290,7 +293,9 @@ sender: {
     image: 'portrait'
   },
   subtitle: 'Evergreen Command',
-  position: 'right'
+  position: 'right',
+  imageShape: 'circle',
+  size: 'compact'
 }
 ```
 
@@ -302,12 +307,27 @@ sender: {
     uuid: 'Actor.abc123',
     image: 'token'
   },
+  label: 'BLACK CHANNEL',
   subtitle: 'Encrypted Channel',
-  position: 'top'
+  position: 'top',
+  imageShape: 'square',
+  size: 'large'
 }
 ```
 
 When using `actor.name`, the name must match exactly one world actor. If multiple actors share the same name, use `actor.uuid`.
+
+Sender options:
+
+```js
+sender: {
+  label: 'TRANSMISSION SOURCE', // defaults to this value
+  imageFit: 'cover',            // 'cover' or 'contain'
+  imageShape: 'square',         // 'square', 'portrait', or 'circle'
+  position: 'left',             // 'left', 'right', or 'top'
+  size: 'normal'                // 'compact', 'normal', or 'large'
+}
+```
 
 ## Text Overlays
 
@@ -374,6 +394,66 @@ await ao.showTextOverlay({
       { text: 'WEATHER: EXTREME HUMIDITY', fontSize: '24px' }
     ]
   }
+});
+```
+
+Comms message helper:
+
+```js
+const ao = game.modules.get('anarchist-overlay').api;
+
+async function showCommsMessage({
+  id = 'comms-message',
+  actorName,
+  actorUuid,
+  subtitle = 'Secure Channel',
+  lines,
+  style = 'hologram',
+  frame = 'lower-third'
+}) {
+  return ao.showTextOverlay({
+    id,
+    durationMs: 9000,
+    behavior: {
+      clearExisting: true,
+      closeAllWindows: false,
+      blockInteractions: false
+    },
+    text: {
+      frame,
+      style,
+      layout: {
+        align: 'start',
+        textAlign: 'start',
+        maxWidth: '760px'
+      },
+      sender: {
+        actor: actorUuid
+          ? { uuid: actorUuid, image: 'portrait' }
+          : { name: actorName, image: 'portrait' },
+        label: 'COMMS',
+        subtitle,
+        position: 'left',
+        imageShape: 'circle',
+        size: 'normal'
+      },
+      animation: {
+        type: 'typewriter',
+        durationMs: 1200,
+        lineDelayMs: 250
+      },
+      lines
+    }
+  });
+}
+
+await showCommsMessage({
+  actorName: 'LT. VERA KAO',
+  subtitle: 'Evergreen Command',
+  lines: [
+    { text: 'MISSION UPDATE RECEIVED', fontSize: '34px' },
+    { text: 'HOSTILE CONTACTS CONFIRMED', fontSize: '24px' }
+  ]
 });
 ```
 
@@ -478,10 +558,13 @@ type BriefingConfig = {
   };
   sender?: {
     name?: string;
+    label?: string;
     subtitle?: string;
     image?: string;
     imageFit?: 'cover' | 'contain';
+    imageShape?: 'square' | 'portrait' | 'circle';
     position?: 'left' | 'right' | 'top';
+    size?: 'compact' | 'normal' | 'large';
     actor?: {
       uuid?: string;
       name?: string;

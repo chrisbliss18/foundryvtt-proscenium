@@ -42,13 +42,18 @@ type TextCrawlLineConfig = {
 
 export type TextCrawlSenderPosition = 'left' | 'right' | 'top';
 export type TextCrawlSenderImageFit = 'cover' | 'contain';
+export type TextCrawlSenderImageShape = 'square' | 'portrait' | 'circle';
+export type TextCrawlSenderSize = 'compact' | 'normal' | 'large';
 
 export type TextCrawlSenderConfig = {
   name: string;
+  label?: string;
   subtitle?: string;
   image?: string;
   imageFit?: TextCrawlSenderImageFit;
+  imageShape?: TextCrawlSenderImageShape;
   position?: TextCrawlSenderPosition;
+  size?: TextCrawlSenderSize;
 };
 
 export type TextCrawlConfig = {
@@ -108,6 +113,8 @@ type NormalizedConfig = {
   sender?: NormalizedTextCrawlSenderConfig;
   senderPositionClass: string;
   senderImageFitClass: string;
+  senderImageShapeClass: string;
+  senderSizeClass: string;
   hasSender: boolean;
 };
 
@@ -326,6 +333,8 @@ const normalizeConfig = (config: TextCrawlConfig): NormalizedConfig => {
     sender,
     senderPositionClass: sender ? `text-crawl--sender-${sender.position}` : '',
     senderImageFitClass: sender ? `text-crawl--sender-image-${sender.imageFit}` : '',
+    senderImageShapeClass: sender ? `text-crawl--sender-shape-${sender.imageShape}` : '',
+    senderSizeClass: sender ? `text-crawl--sender-size-${sender.size}` : '',
     hasSender: !!sender
   };
 }
@@ -392,6 +401,10 @@ const validateTextCrawlSenderConfig = (sender?: TextCrawlSenderConfig) => {
     throw new Error('Text crawl sender.name must be a non-empty string.');
   }
 
+  if (sender.label !== undefined && (typeof sender.label !== 'string' || !sender.label.trim())) {
+    throw new Error('Text crawl sender.label must be a non-empty string.');
+  }
+
   if (sender.subtitle !== undefined && (typeof sender.subtitle !== 'string' || !sender.subtitle.trim())) {
     throw new Error('Text crawl sender.subtitle must be a non-empty string.');
   }
@@ -402,6 +415,8 @@ const validateTextCrawlSenderConfig = (sender?: TextCrawlSenderConfig) => {
 
   resolveTextCrawlSenderPosition(sender.position);
   resolveTextCrawlSenderImageFit(sender.imageFit);
+  resolveTextCrawlSenderImageShape(sender.imageShape);
+  resolveTextCrawlSenderSize(sender.size);
 };
 
 const validateTextCrawlLines = (config: TextCrawlConfig) => {
@@ -435,10 +450,13 @@ const normalizeSenderConfig = (sender?: TextCrawlSenderConfig): NormalizedTextCr
 
   return {
     name: sender.name.trim(),
+    label: sender.label?.trim() ?? 'TRANSMISSION SOURCE',
     subtitle: sender.subtitle?.trim() ?? '',
     image,
     imageFit: resolveTextCrawlSenderImageFit(sender.imageFit),
+    imageShape: resolveTextCrawlSenderImageShape(sender.imageShape),
     position: resolveTextCrawlSenderPosition(sender.position),
+    size: resolveTextCrawlSenderSize(sender.size),
     hasImage: !!image
   };
 };
@@ -459,6 +477,24 @@ const resolveTextCrawlSenderImageFit = (imageFit?: string): TextCrawlSenderImage
   }
 
   throw new Error(`Unknown text crawl sender.imageFit value "${resolvedImageFit}". Expected "cover" or "contain".`);
+};
+
+const resolveTextCrawlSenderImageShape = (imageShape?: string): TextCrawlSenderImageShape => {
+  const resolvedImageShape = imageShape ?? 'square';
+  if (resolvedImageShape === 'square' || resolvedImageShape === 'portrait' || resolvedImageShape === 'circle') {
+    return resolvedImageShape;
+  }
+
+  throw new Error(`Unknown text crawl sender.imageShape value "${resolvedImageShape}". Expected "square", "portrait", or "circle".`);
+};
+
+const resolveTextCrawlSenderSize = (size?: string): TextCrawlSenderSize => {
+  const resolvedSize = size ?? 'normal';
+  if (resolvedSize === 'compact' || resolvedSize === 'normal' || resolvedSize === 'large') {
+    return resolvedSize;
+  }
+
+  throw new Error(`Unknown text crawl sender.size value "${resolvedSize}". Expected "compact", "normal", or "large".`);
 };
 
 const validateTextCrawlEffectFrameCompatibility = (

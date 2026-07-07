@@ -123,6 +123,15 @@
   --text-crawl-sender-border: rgba(255, 216, 87, 0.55);
   --text-crawl-sender-background: rgba(0, 0, 0, 0.22);
   --text-crawl-sender-inline-space: clamp(300px, 38vw, 380px);
+  --text-crawl-sender-min-width: min(260px, 34vw);
+  --text-crawl-sender-max-width: 320px;
+  --text-crawl-sender-gap: 12px;
+  --text-crawl-sender-image-size: clamp(58px, 9vw, 96px);
+  --text-crawl-sender-image-aspect: 1;
+  --text-crawl-sender-image-radius: 4px;
+  --text-crawl-sender-label-size: 10px;
+  --text-crawl-sender-name-size: clamp(16px, 2vw, 21px);
+  --text-crawl-sender-subtitle-size: clamp(11px, 1.45vw, 14px);
 }
 
 .text-crawl__content {
@@ -207,21 +216,21 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
+  gap: var(--text-crawl-sender-gap);
   box-sizing: border-box;
-  min-width: min(260px, 34vw);
-  max-width: 320px;
+  min-width: var(--text-crawl-sender-min-width);
+  max-width: var(--text-crawl-sender-max-width);
   padding: 10px clamp(12px, 2vw, 22px) 10px 0;
   border-right: 1px solid var(--text-crawl-sender-border);
   background: linear-gradient(90deg, var(--text-crawl-sender-background), rgba(0, 0, 0, 0));
 }
 
 .text-crawl__sender-image-frame {
-  width: clamp(58px, 9vw, 96px);
-  aspect-ratio: 1;
+  width: var(--text-crawl-sender-image-size);
+  aspect-ratio: var(--text-crawl-sender-image-aspect);
   overflow: hidden;
   border: 1px solid var(--text-crawl-sender-border);
-  border-radius: 4px;
+  border-radius: var(--text-crawl-sender-image-radius);
   background:
     linear-gradient(135deg, var(--text-crawl-accent-soft), rgba(0, 0, 0, 0.58)),
     rgba(0, 0, 0, 0.62);
@@ -241,6 +250,37 @@
   object-fit: contain;
 }
 
+.text-crawl--sender-shape-portrait {
+  --text-crawl-sender-image-aspect: 3 / 4;
+}
+
+.text-crawl--sender-shape-circle {
+  --text-crawl-sender-image-aspect: 1;
+  --text-crawl-sender-image-radius: 999px;
+}
+
+.text-crawl--sender-size-compact {
+  --text-crawl-sender-inline-space: clamp(240px, 32vw, 310px);
+  --text-crawl-sender-min-width: min(220px, 30vw);
+  --text-crawl-sender-max-width: 260px;
+  --text-crawl-sender-gap: 9px;
+  --text-crawl-sender-image-size: clamp(44px, 7vw, 64px);
+  --text-crawl-sender-label-size: 9px;
+  --text-crawl-sender-name-size: clamp(14px, 1.8vw, 18px);
+  --text-crawl-sender-subtitle-size: clamp(10px, 1.25vw, 12px);
+}
+
+.text-crawl--sender-size-large {
+  --text-crawl-sender-inline-space: clamp(360px, 44vw, 470px);
+  --text-crawl-sender-min-width: min(320px, 42vw);
+  --text-crawl-sender-max-width: 420px;
+  --text-crawl-sender-gap: 16px;
+  --text-crawl-sender-image-size: clamp(76px, 11vw, 126px);
+  --text-crawl-sender-label-size: 11px;
+  --text-crawl-sender-name-size: clamp(19px, 2.5vw, 28px);
+  --text-crawl-sender-subtitle-size: clamp(12px, 1.65vw, 16px);
+}
+
 .text-crawl__sender-meta {
   min-width: 0;
   font-family: monospace;
@@ -250,14 +290,14 @@
 .text-crawl__sender-label {
   margin-bottom: 5px;
   color: var(--text-crawl-accent);
-  font-size: 10px;
+  font-size: var(--text-crawl-sender-label-size);
   line-height: 1;
   opacity: 0.82;
 }
 
 .text-crawl__sender-name {
   color: #fff;
-  font-size: clamp(16px, 2vw, 21px);
+  font-size: var(--text-crawl-sender-name-size);
   font-weight: 700;
   line-height: 1.05;
   overflow-wrap: anywhere;
@@ -267,7 +307,7 @@
 .text-crawl__sender-subtitle {
   margin-top: 6px;
   color: rgba(255, 255, 255, 0.72);
-  font-size: clamp(11px, 1.45vw, 14px);
+  font-size: var(--text-crawl-sender-subtitle-size);
   line-height: 1.15;
   overflow-wrap: anywhere;
 }

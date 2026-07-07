@@ -15,7 +15,9 @@ import type {
   TextCrawlFrameType,
   TextCrawlSenderConfig,
   TextCrawlSenderImageFit,
-  TextCrawlSenderPosition
+  TextCrawlSenderImageShape,
+  TextCrawlSenderPosition,
+  TextCrawlSenderSize
 } from './textCrawl';
 import { createTextCrawlHtml } from './textCrawl';
 import { resolvePresentationThemeType, type PresentationThemeType } from './theme';
@@ -62,10 +64,13 @@ export type BriefingSenderActorSelector = {
 
 export type BriefingSenderConfig = {
   name?: string;
+  label?: string;
   subtitle?: string;
   image?: string;
   imageFit?: TextCrawlSenderImageFit;
+  imageShape?: TextCrawlSenderImageShape;
   position?: TextCrawlSenderPosition;
+  size?: TextCrawlSenderSize;
   actor?: BriefingSenderActorSelector;
 };
 
@@ -457,10 +462,13 @@ const resolveBriefingSender = async (sender?: BriefingSenderConfig): Promise<Tex
 
   return {
     name,
+    label: sender.label,
     subtitle: sender.subtitle,
     image: manualImage || actorImage,
     imageFit: sender.imageFit,
-    position: sender.position
+    imageShape: sender.imageShape,
+    position: sender.position,
+    size: sender.size
   };
 };
 
