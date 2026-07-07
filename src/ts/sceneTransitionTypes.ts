@@ -50,6 +50,16 @@ export type TransitionAudio = {
   stop: () => Promise<unknown> | unknown;
 };
 
+export type TransitionAudioController = {
+  play: (src: string, volume: number) => void;
+  startTyping: (
+    text: TextCrawlConfig,
+    sounds: Required<SceneTransitionSounds>,
+    controller: TransitionController
+  ) => TransitionAudio | undefined;
+  stopAll: () => Promise<void>;
+};
+
 export type TransitionController = {
   canceled: boolean;
   cancel: () => void;

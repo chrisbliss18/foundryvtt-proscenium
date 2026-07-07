@@ -7,11 +7,12 @@ import type {
   SceneTransitionSocketConfig,
   SceneTransitionTiming,
   TransitionAudio,
+  TransitionAudioController,
   TransitionController
 } from './sceneTransitionTypes';
 import { createTextCrawlHtml } from './textCrawl';
 import { moduleId } from './constants';
-import { playSound, startTypingAudio } from './sceneTransitionAudio';
+import { createTransitionAudioController } from './sceneTransitionAudio';
 import {
   createTransitionOverlay,
   getDoorElement,
@@ -73,6 +74,7 @@ const handleSceneTransition = async (config: SceneTransitionSocketConfig, contro
   const normalizedConfig = normalizeConfig(config);
   const overlay = createTransitionOverlay(normalizedConfig);
   const controller = createTransitionController();
+  const audio = createTransitionAudioController();
   let typingAudio: TransitionAudio | undefined;
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key !== 'Escape' || controller.canceled) {
@@ -92,28 +94,28 @@ const handleSceneTransition = async (config: SceneTransitionSocketConfig, contro
   try {
     await prepareOverlayForAnimation(overlay);
 
-    if (await closeDoors(overlay, normalizedConfig, controller)) {
-      return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, typingAudio);
+    if (await closeDoors(overlay, normalizedConfig, controller, audio)) {
+      return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, audio, typingAudio);
     }
 
     if (normalizedConfig.text) {
-      typingAudio = await renderBriefingText(overlay, normalizedConfig, controller);
+      typingAudio = await renderBriefingText(overlay, normalizedConfig, controller, audio);
     }
 
     if (await activateTargetScene(normalizedConfig, controllingUserId, controller)) {
-      return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, typingAudio);
+      return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, audio, typingAudio);
     }
 
     await typingAudio?.stop();
     typingAudio = undefined;
 
-    if (await openDoors(overlay, normalizedConfig, controller)) {
-      return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, typingAudio);
+    if (await openDoors(overlay, normalizedConfig, controller, audio)) {
+      return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, audio, typingAudio);
     }
 
     overlay.classList.add('text-hidden');
     if (await waitForTransition(getTextElement(overlay), 'opacity', normalizedConfig.timing.textFadeMs, controller)) {
-      return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, typingAudio);
+      return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, audio, typingAudio);
     }
   } finally {
     window.removeEventListener('keydown', handleKeyDown, true);
@@ -121,6 +123,7 @@ const handleSceneTransition = async (config: SceneTransitionSocketConfig, contro
       activeTransitions.delete(normalizedConfig.id);
     }
     await typingAudio?.stop();
+    await audio.stopAll();
     overlay.remove();
   }
 };
@@ -128,9 +131,10 @@ const handleSceneTransition = async (config: SceneTransitionSocketConfig, contro
 const closeDoors = async (
   overlay: HTMLElement,
   config: NormalizedSceneTransitionConfig,
-  controller: TransitionController
+  controller: TransitionController,
+  audio: TransitionAudioController
 ) => {
-  void playSound(config.sounds.doorClose, config.sounds.doorVolume);
+  audio.play(config.sounds.doorClose, config.sounds.doorVolume);
   overlay.classList.add('doors-closing');
   overlay.classList.add('doors-closed');
   overlay.classList.remove('doors-open');
@@ -141,14 +145,15 @@ const closeDoors = async (
 
   overlay.classList.remove('doors-closing');
   overlay.classList.add('doors-sealed');
-  void playSound(config.sounds.doorSeal, config.sounds.doorVolume);
+  audio.play(config.sounds.doorSeal, config.sounds.doorVolume);
   return false;
 };
 
 const renderBriefingText = async (
   overlay: HTMLElement,
   config: NormalizedSceneTransitionConfig,
-  controller: TransitionController
+  controller: TransitionController,
+  audio: TransitionAudioController
 ) => {
   if (!config.text) {
     return undefined;
@@ -161,7 +166,7 @@ const renderBriefingText = async (
     overlay.classList.add('text-visible');
   }
 
-  return startTypingAudio(config.text, config.sounds, controller);
+  return audio.startTyping(config.text, config.sounds, controller);
 };
 
 const activateTargetScene = async (
@@ -187,14 +192,15 @@ const waitForBriefing = (config: NormalizedSceneTransitionConfig, controller: Tr
 const openDoors = async (
   overlay: HTMLElement,
   config: NormalizedSceneTransitionConfig,
-  controller: TransitionController
+  controller: TransitionController,
+  audio: TransitionAudioController
 ) => {
-  void playSound(config.sounds.doorUnlock, config.sounds.doorVolume);
+  audio.play(config.sounds.doorUnlock, config.sounds.doorVolume);
   if (await waitForDelay(config.timing.doorUnlockMs, controller)) {
     return true;
   }
 
-  void playSound(config.sounds.doorOpen, config.sounds.doorVolume);
+  audio.play(config.sounds.doorOpen, config.sounds.doorVolume);
   overlay.classList.add('doors-opening');
   overlay.classList.add('doors-open');
   overlay.classList.remove('doors-sealed');
@@ -314,9 +320,11 @@ const finishLocalCancel = async (
   config: NormalizedSceneTransitionConfig,
   controllingUserId: string,
   overlay: HTMLElement,
+  audio: TransitionAudioController,
   typingAudio?: TransitionAudio
 ) => {
   await typingAudio?.stop();
+  await audio.stopAll();
   overlay.remove();
 
   if ((game as ReadyGame).user.id === controllingUserId) {

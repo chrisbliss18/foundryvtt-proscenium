@@ -3,23 +3,50 @@ import type {
   AudioHelperGlobal,
   SceneTransitionSounds,
   TransitionAudio,
+  TransitionAudioController,
   TransitionController,
   TransitionSound
 } from './sceneTransitionTypes';
 
-export const startTypingAudio = (
-  text: TextCrawlConfig,
-  sounds: Required<SceneTransitionSounds>,
-  controller: TransitionController
-): TransitionAudio | undefined => {
-  if (!sounds.typingClick) {
+export const createTransitionAudioController = (): TransitionAudioController => {
+  const activeSounds = new Set<TransitionSound>();
+
+  return {
+    play: (src: string, volume: number) => {
+      void playTrackedSound(src, volume, activeSounds);
+    },
+    startTyping: (text: TextCrawlConfig, sounds: Required<SceneTransitionSounds>, controller: TransitionController) => {
+      if (!sounds.typingClick) {
+        return undefined;
+      }
+
+      return scheduleTypingClicks(text, sounds.typingClick, sounds.typingVolume, controller, activeSounds);
+    },
+    stopAll: async () => {
+      await Promise.allSettled(
+        Array.from(activeSounds, sound => stopSound(sound))
+      );
+      activeSounds.clear();
+    }
+  };
+};
+
+const playTrackedSound = async (
+  src: string,
+  volume: number,
+  activeSounds: Set<TransitionSound>
+) => {
+  const sound = await playSound(src, volume);
+  if (!sound) {
     return undefined;
   }
 
-  return scheduleTypingClicks(text, sounds.typingClick, sounds.typingVolume, controller);
+  activeSounds.add(sound);
+  void stopWhenComplete(sound).finally(() => activeSounds.delete(sound));
+  return sound;
 };
 
-export const playSound = async (src: string, volume: number, loop = false) => {
+const playSound = async (src: string, volume: number) => {
   if (!src) {
     return undefined;
   }
@@ -27,13 +54,13 @@ export const playSound = async (src: string, volume: number, loop = false) => {
   try {
     const audioHelper = (globalThis as typeof globalThis & { AudioHelper?: AudioHelperGlobal }).AudioHelper;
     if (audioHelper) {
-      return await audioHelper.play({ src, volume, loop }, false);
+      return await audioHelper.play({ src, volume, loop: false }, false);
     }
 
     const fallbackSound = (game as ReadyGame).audio.create({ src });
     fallbackSound.volume = volume;
     await fallbackSound.load();
-    await fallbackSound.play({ loop });
+    await fallbackSound.play({ loop: false });
     return fallbackSound;
   } catch (error) {
     console.warn(`Anarchist Overlay | Unable to play sound "${src}".`, error);
@@ -45,7 +72,8 @@ const scheduleTypingClicks = (
   text: TextCrawlConfig,
   src: string,
   volume: number,
-  controller: TransitionController
+  controller: TransitionController,
+  activeSounds: Set<TransitionSound>
 ): TransitionAudio => {
   const timers: number[] = [];
   const typingTimeMs = (text.typingTime ?? 2) * 1000;
@@ -66,7 +94,7 @@ const scheduleTypingClicks = (
 
       timers.push(window.setTimeout(() => {
         if (!controller.canceled) {
-          void playSound(src, volume);
+          void playTrackedSound(src, volume, activeSounds);
         }
       }, startMs + ((index + 1) * intervalMs)));
     }
@@ -77,7 +105,7 @@ const scheduleTypingClicks = (
   };
 };
 
-export const stopSound = async (sound?: TransitionSound) => {
+const stopSound = async (sound?: TransitionSound) => {
   if (!sound) {
     return;
   }
@@ -86,5 +114,22 @@ export const stopSound = async (sound?: TransitionSound) => {
     await sound.stop();
   } catch (error) {
     console.warn('Anarchist Overlay | Unable to stop transition sound.', error);
+  }
+};
+
+const stopWhenComplete = async (sound: TransitionSound) => {
+  const maybeSound = sound as TransitionSound & {
+    playing?: boolean;
+    duration?: number;
+  };
+
+  const duration = maybeSound.duration;
+  if (!duration) {
+    return;
+  }
+
+  await new Promise(resolve => window.setTimeout(resolve, (duration * 1000) + 250));
+  if (maybeSound.playing) {
+    await stopSound(sound);
   }
 };
