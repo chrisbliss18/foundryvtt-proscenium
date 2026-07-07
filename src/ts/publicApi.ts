@@ -654,8 +654,8 @@ const isActorImageSelector = (image?: string): image is BriefingSenderActorImage
 const notifyApiError = (error: unknown) => {
   const message = error instanceof Error
     ? error.message
-    : 'Unable to prepare Anarchist Overlay config.';
-  ui.notifications?.error(`Anarchist Overlay | ${message}`);
+    : 'Unable to prepare Proscenium config.';
+  ui.notifications?.error(`Proscenium | ${message}`);
 };
 
 const resolvePresetType = (preset?: string): SceneTransitionPresetType => {

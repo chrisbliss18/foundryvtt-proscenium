@@ -5,7 +5,7 @@ import type {
   transitionToScene
 } from './publicApi';
 
-export type AnarchistOverlayApi = {
+export type ProsceniumApi = {
   transitionToScene: ReturnType<typeof transitionToScene>;
   showTextOverlay: ReturnType<typeof showTextOverlay>;
   showHtmlOverlay: ReturnType<typeof showHtmlOverlay>;
@@ -13,13 +13,13 @@ export type AnarchistOverlayApi = {
   closeOverlay: ReturnType<typeof closeOverlay>;
 };
 
-export interface AnarchistOverlayModule {
-  api: AnarchistOverlayApi;
-  transitionToScene: AnarchistOverlayApi['transitionToScene'];
-  showTextOverlay: AnarchistOverlayApi['showTextOverlay'];
-  showHtmlOverlay: AnarchistOverlayApi['showHtmlOverlay'];
-  closeAllOverlays: AnarchistOverlayApi['closeAllOverlays'];
-  closeOverlay: AnarchistOverlayApi['closeOverlay'];
+export interface ProsceniumModule {
+  api: ProsceniumApi;
+  transitionToScene: ProsceniumApi['transitionToScene'];
+  showTextOverlay: ProsceniumApi['showTextOverlay'];
+  showHtmlOverlay: ProsceniumApi['showHtmlOverlay'];
+  closeAllOverlays: ProsceniumApi['closeAllOverlays'];
+  closeOverlay: ProsceniumApi['closeOverlay'];
 }
 
 

@@ -1,17 +1,25 @@
-# Anarchist Overlay
+# Proscenium
 
-Foundry VTT module for cinematic scene transitions, styled text overlays, and GM-controlled HTML overlays shown to all connected clients.
+Proscenium is a system-agnostic Foundry VTT module for cinematic table presentation. It gives GMs a macro-friendly API for scene transitions, mission briefings, lower-third messages, scrolling chyrons, and trusted HTML overlays shown to connected clients.
+
+It is designed for moments where a scene change or table message should feel intentional: a location reveal, a mission briefing, a radio transmission, a warning banner, or a dramatic fade between scenes.
 
 ## Compatibility
 
-Anarchist Overlay is compatible with Foundry VTT v13 and v14. It requires the [socketlib](https://github.com/farling42/foundryvtt-socketlib) module.
+Proscenium is compatible with Foundry VTT v13 and v14. It requires the [socketlib](https://github.com/farling42/foundryvtt-socketlib) module.
+
+## License and Attribution
+
+Proscenium is released under the MIT License.
+
+This project began as a fork of [Anarchist Overlay](https://github.com/reynevan24/anarchist-overlay) by Szymon Baranczyk. The module has since been renamed and expanded into a broader system-agnostic presentation toolkit.
 
 ## Installation
 
 Install using a manifest link:
 
 ```txt
-https://github.com/reynevan24/anarchist-overlay/releases/latest/download/module.json
+https://github.com/chrisbliss18/foundryvtt-proscenium/releases/latest/download/module.json
 ```
 
 ## API Model
@@ -19,15 +27,15 @@ https://github.com/reynevan24/anarchist-overlay/releases/latest/download/module.
 All public methods are available from:
 
 ```js
-const ao = game.modules.get('anarchist-overlay').api;
+const proscenium = game.modules.get('proscenium').api;
 ```
 
 The public API is organized around three actions:
 
 ```js
-ao.transitionToScene(config)
-ao.showTextOverlay(config)
-ao.showHtmlOverlay(config)
+proscenium.transitionToScene(config)
+proscenium.showTextOverlay(config)
+proscenium.showHtmlOverlay(config)
 ```
 
 Use `transitionToScene` for scene activation with a cinematic reveal, `showTextOverlay` for styled text without a scene change, and `showHtmlOverlay` only when you intentionally need raw GM-provided HTML.
@@ -35,9 +43,9 @@ Use `transitionToScene` for scene activation with a cinematic reveal, `showTextO
 ## Scene Transitions
 
 ```js
-const ao = game.modules.get('anarchist-overlay').api;
+const proscenium = game.modules.get('proscenium').api;
 
-await ao.transitionToScene({
+await proscenium.transitionToScene({
   scene: {
     name: 'Sandbox'
   },
@@ -98,7 +106,7 @@ Available presets:
 Presets are only defaults. Override any part explicitly:
 
 ```js
-await ao.transitionToScene({
+await proscenium.transitionToScene({
   scene: { name: 'Sandbox' },
   preset: 'bulkhead',
   transition: {
@@ -160,7 +168,7 @@ Available audio profiles:
 Use `audio.profile` to select a bundled bank:
 
 ```js
-await ao.transitionToScene({
+await proscenium.transitionToScene({
   scene: { name: 'Sandbox' },
   transition: {
     type: 'split-door',
@@ -188,11 +196,11 @@ audio: {
     typing: 0.35
   },
   overrides: {
-    close: 'modules/anarchist-overlay/sounds/custom-close.ogg',
-    seal: 'modules/anarchist-overlay/sounds/custom-seal.ogg',
-    unlock: 'modules/anarchist-overlay/sounds/custom-unlock.ogg',
-    open: 'modules/anarchist-overlay/sounds/custom-open.ogg',
-    typing: 'modules/anarchist-overlay/sounds/custom-type.ogg'
+    close: 'modules/proscenium/sounds/custom-close.ogg',
+    seal: 'modules/proscenium/sounds/custom-seal.ogg',
+    unlock: 'modules/proscenium/sounds/custom-unlock.ogg',
+    open: 'modules/proscenium/sounds/custom-open.ogg',
+    typing: 'modules/proscenium/sounds/custom-type.ogg'
   }
 }
 ```
@@ -229,7 +237,7 @@ briefing: {
   sender: {
     name: 'LT. VERA KAO',
     sublabel: 'Evergreen Command',
-    image: 'systems/lancer/assets/tokens/verakao.webp',
+    image: 'worlds/my-world/assets/vera-kao.webp',
     imageFit: 'cover',
     position: 'left'
   },
@@ -276,7 +284,7 @@ sender: {
   name: 'LT. VERA KAO',
   label: 'TRANSMISSION SOURCE',
   sublabel: 'Evergreen Command',
-  image: 'systems/lancer/assets/tokens/verakao.webp',
+  image: 'worlds/my-world/assets/vera-kao.webp',
   imageFit: 'cover',
   imageShape: 'portrait',
   position: 'left',
@@ -332,9 +340,9 @@ sender: {
 ## Text Overlays
 
 ```js
-const ao = game.modules.get('anarchist-overlay').api;
+const proscenium = game.modules.get('proscenium').api;
 
-await ao.showTextOverlay({
+await proscenium.showTextOverlay({
   id: 'mission-alert',
   placement: {
     x: 'center',
@@ -369,7 +377,7 @@ await ao.showTextOverlay({
 Chyron example:
 
 ```js
-await ao.showTextOverlay({
+await proscenium.showTextOverlay({
   id: 'mission-chyron',
   placement: {
     x: 'center',
@@ -400,7 +408,7 @@ await ao.showTextOverlay({
 Comms message helper:
 
 ```js
-const ao = game.modules.get('anarchist-overlay').api;
+const proscenium = game.modules.get('proscenium').api;
 
 async function showCommsMessage({
   id = 'comms-message',
@@ -411,7 +419,7 @@ async function showCommsMessage({
   style = 'hologram',
   frame = 'lower-third'
 }) {
-  return ao.showTextOverlay({
+  return proscenium.showTextOverlay({
     id,
     durationMs: 9000,
     behavior: {
@@ -462,7 +470,7 @@ await showCommsMessage({
 `showHtmlOverlay` renders arbitrary GM-provided HTML on every connected client. Use it only for trusted GM macros.
 
 ```js
-await ao.showHtmlOverlay({
+await proscenium.showHtmlOverlay({
   id: 'warning',
   html: '<h1>Evacuate immediately</h1>',
   placement: {
@@ -479,8 +487,8 @@ await ao.showHtmlOverlay({
 ## Closing Overlays
 
 ```js
-await ao.closeOverlay('warning');
-await ao.closeAllOverlays();
+await proscenium.closeOverlay('warning');
+await proscenium.closeAllOverlays();
 ```
 
 ## Config Reference

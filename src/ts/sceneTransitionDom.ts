@@ -8,8 +8,8 @@ const transitionFallbackMs = 250;
 export const createTransitionOverlay = (config: NormalizedSceneTransitionConfig) => {
   const overlay = document.createElement('div');
   overlay.className = [
-    'anarchist-overlay',
-    'anarchist-scene-transition',
+    'proscenium-overlay',
+    'proscenium-scene-transition',
     `scene-transition--${config.transition.type}`,
     `scene-transition--theme-${config.transition.theme.type}`,
     config.transition.type === 'industrial-doors' ? 'doors-open' : '',
@@ -17,62 +17,62 @@ export const createTransitionOverlay = (config: NormalizedSceneTransitionConfig)
     config.aboveUi ? 'above-ui' : '',
     config.blockInteractions ? 'block-interactions' : ''
   ].filter(Boolean).join(' ');
-  overlay.dataset.anarchistOverlay = 'true';
-  overlay.dataset.anarchistOverlayId = config.id;
+  overlay.dataset.prosceniumOverlay = 'true';
+  overlay.dataset.prosceniumOverlayId = config.id;
   overlay.style.setProperty('--door-close-duration', `${config.timing.doorCloseMs}ms`);
   overlay.style.setProperty('--door-open-duration', `${config.timing.doorOpenMs}ms`);
   overlay.style.setProperty('--fade-out-duration', `${config.timing.fadeOutMs}ms`);
   overlay.style.setProperty('--fade-in-duration', `${config.timing.fadeInMs}ms`);
   overlay.style.setProperty('--text-fade-duration', `${config.timing.textFadeMs}ms`);
   overlay.innerHTML = `
-    <div class="anarchist-scene-transition__fade"></div>
-    <div class="anarchist-scene-transition__door anarchist-scene-transition__door--left">
-      <div class="anarchist-scene-transition__door-rib"></div>
-      <div class="anarchist-scene-transition__door-rib"></div>
-      <div class="anarchist-scene-transition__door-rib"></div>
-      <div class="anarchist-scene-transition__hazard"></div>
+    <div class="proscenium-scene-transition__fade"></div>
+    <div class="proscenium-scene-transition__door proscenium-scene-transition__door--left">
+      <div class="proscenium-scene-transition__door-rib"></div>
+      <div class="proscenium-scene-transition__door-rib"></div>
+      <div class="proscenium-scene-transition__door-rib"></div>
+      <div class="proscenium-scene-transition__hazard"></div>
     </div>
-    <div class="anarchist-scene-transition__door anarchist-scene-transition__door--right">
-      <div class="anarchist-scene-transition__door-rib"></div>
-      <div class="anarchist-scene-transition__door-rib"></div>
-      <div class="anarchist-scene-transition__door-rib"></div>
-      <div class="anarchist-scene-transition__hazard"></div>
+    <div class="proscenium-scene-transition__door proscenium-scene-transition__door--right">
+      <div class="proscenium-scene-transition__door-rib"></div>
+      <div class="proscenium-scene-transition__door-rib"></div>
+      <div class="proscenium-scene-transition__door-rib"></div>
+      <div class="proscenium-scene-transition__hazard"></div>
     </div>
-    <div class="anarchist-scene-transition__seam" aria-hidden="true"></div>
-    <div class="anarchist-scene-transition__shutter anarchist-scene-transition__shutter--top">
-      <div class="anarchist-scene-transition__shutter-rib"></div>
-      <div class="anarchist-scene-transition__shutter-rib"></div>
+    <div class="proscenium-scene-transition__seam" aria-hidden="true"></div>
+    <div class="proscenium-scene-transition__shutter proscenium-scene-transition__shutter--top">
+      <div class="proscenium-scene-transition__shutter-rib"></div>
+      <div class="proscenium-scene-transition__shutter-rib"></div>
     </div>
-    <div class="anarchist-scene-transition__shutter anarchist-scene-transition__shutter--bottom">
-      <div class="anarchist-scene-transition__shutter-rib"></div>
-      <div class="anarchist-scene-transition__shutter-rib"></div>
+    <div class="proscenium-scene-transition__shutter proscenium-scene-transition__shutter--bottom">
+      <div class="proscenium-scene-transition__shutter-rib"></div>
+      <div class="proscenium-scene-transition__shutter-rib"></div>
     </div>
-    <div class="anarchist-scene-transition__text"></div>
+    <div class="proscenium-scene-transition__text"></div>
   `;
 
   return overlay;
 };
 
 export const removeExistingTransition = (id: string) => {
-  Array.from(document.querySelectorAll<HTMLElement>('.anarchist-scene-transition'))
-    .filter(overlay => overlay.dataset.anarchistOverlayId === id)
+  Array.from(document.querySelectorAll<HTMLElement>('.proscenium-scene-transition'))
+    .filter(overlay => overlay.dataset.prosceniumOverlayId === id)
     .forEach(overlay => overlay.remove());
 };
 
 export const getDoorElement = (overlay: HTMLElement) => {
-  return overlay.querySelector<HTMLElement>('.anarchist-scene-transition__door--left');
+  return overlay.querySelector<HTMLElement>('.proscenium-scene-transition__door--left');
 };
 
 export const getFadeElement = (overlay: HTMLElement) => {
-  return overlay.querySelector<HTMLElement>('.anarchist-scene-transition__fade');
+  return overlay.querySelector<HTMLElement>('.proscenium-scene-transition__fade');
 };
 
 export const getShutterElement = (overlay: HTMLElement) => {
-  return overlay.querySelector<HTMLElement>('.anarchist-scene-transition__shutter--top');
+  return overlay.querySelector<HTMLElement>('.proscenium-scene-transition__shutter--top');
 };
 
 export const getTextElement = (overlay: HTMLElement) => {
-  return overlay.querySelector<HTMLElement>('.anarchist-scene-transition__text');
+  return overlay.querySelector<HTMLElement>('.proscenium-scene-transition__text');
 };
 
 export const prepareOverlayForAnimation = async (overlay: HTMLElement) => {

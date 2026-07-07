@@ -423,7 +423,7 @@ const viewScene = async (sceneId: string) => {
   try {
     await scene.view();
   } catch (error) {
-    console.warn(`Anarchist Overlay | Unable to view scene "${sceneId}" after local cancel.`, error);
+    console.warn(`Proscenium | Unable to view scene "${sceneId}" after local cancel.`, error);
   }
 };
 
@@ -624,7 +624,7 @@ const notifyError = (error: unknown) => {
   const message = error instanceof Error
     ? error.message
     : 'Unable to play scene transition.';
-  ui.notifications?.error(`Anarchist Overlay | ${message}`);
+  ui.notifications?.error(`Proscenium | ${message}`);
 };
 
 const finishLocalCancel = async (

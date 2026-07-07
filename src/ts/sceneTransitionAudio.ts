@@ -63,7 +63,7 @@ const playSound = async (src: string, volume: number) => {
     await fallbackSound.play({ loop: false });
     return fallbackSound;
   } catch (error) {
-    console.warn(`Anarchist Overlay | Unable to play sound "${src}".`, error);
+    console.warn(`Proscenium | Unable to play sound "${src}".`, error);
     return undefined;
   }
 };
@@ -113,7 +113,7 @@ const stopSound = async (sound?: TransitionSound) => {
   try {
     await sound.stop();
   } catch (error) {
-    console.warn('Anarchist Overlay | Unable to stop transition sound.', error);
+    console.warn('Proscenium | Unable to stop transition sound.', error);
   }
 };
 

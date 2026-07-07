@@ -1,4 +1,4 @@
-.anarchist-scene-transition {
+.proscenium-scene-transition {
   --door-close-duration: 2200ms;
   --door-open-duration: 2400ms;
   --fade-out-duration: 1200ms;
@@ -10,11 +10,11 @@
   overflow: hidden;
 }
 
-.anarchist-scene-transition.above-ui {
+.proscenium-scene-transition.above-ui {
   z-index: 99999;
 }
 
-.anarchist-scene-transition__fade {
+.proscenium-scene-transition__fade {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -24,34 +24,34 @@
   will-change: opacity;
 }
 
-.anarchist-scene-transition.fade-covering .anarchist-scene-transition__fade {
+.proscenium-scene-transition.fade-covering .proscenium-scene-transition__fade {
   transition-duration: var(--fade-out-duration);
 }
 
-.anarchist-scene-transition.fade-revealing .anarchist-scene-transition__fade {
+.proscenium-scene-transition.fade-revealing .proscenium-scene-transition__fade {
   transition-duration: var(--fade-in-duration);
 }
 
-.anarchist-scene-transition.fade-black .anarchist-scene-transition__fade {
+.proscenium-scene-transition.fade-black .proscenium-scene-transition__fade {
   opacity: 1;
 }
 
-.anarchist-scene-transition.scene-transition--industrial-doors .anarchist-scene-transition__fade,
-.anarchist-scene-transition.scene-transition--industrial-doors .anarchist-scene-transition__shutter,
-.anarchist-scene-transition.scene-transition--fade .anarchist-scene-transition__door,
-.anarchist-scene-transition.scene-transition--fade .anarchist-scene-transition__seam,
-.anarchist-scene-transition.scene-transition--fade .anarchist-scene-transition__shutter,
-.anarchist-scene-transition.scene-transition--horizontal-shutter .anarchist-scene-transition__fade,
-.anarchist-scene-transition.scene-transition--horizontal-shutter .anarchist-scene-transition__door,
-.anarchist-scene-transition.scene-transition--horizontal-shutter .anarchist-scene-transition__seam {
+.proscenium-scene-transition.scene-transition--industrial-doors .proscenium-scene-transition__fade,
+.proscenium-scene-transition.scene-transition--industrial-doors .proscenium-scene-transition__shutter,
+.proscenium-scene-transition.scene-transition--fade .proscenium-scene-transition__door,
+.proscenium-scene-transition.scene-transition--fade .proscenium-scene-transition__seam,
+.proscenium-scene-transition.scene-transition--fade .proscenium-scene-transition__shutter,
+.proscenium-scene-transition.scene-transition--horizontal-shutter .proscenium-scene-transition__fade,
+.proscenium-scene-transition.scene-transition--horizontal-shutter .proscenium-scene-transition__door,
+.proscenium-scene-transition.scene-transition--horizontal-shutter .proscenium-scene-transition__seam {
   display: none;
 }
 
-.anarchist-scene-transition.scene-transition--fade {
+.proscenium-scene-transition.scene-transition--fade {
   background: transparent;
 }
 
-.anarchist-scene-transition__shutter {
+.proscenium-scene-transition__shutter {
   position: absolute;
   left: 0;
   width: 100vw;
@@ -68,37 +68,37 @@
   will-change: transform;
 }
 
-.anarchist-scene-transition__shutter--top {
+.proscenium-scene-transition__shutter--top {
   top: 0;
   border-bottom: 2px solid rgba(255, 216, 87, 0.7);
 }
 
-.anarchist-scene-transition__shutter--bottom {
+.proscenium-scene-transition__shutter--bottom {
   bottom: 0;
   border-top: 2px solid rgba(255, 216, 87, 0.7);
 }
 
-.anarchist-scene-transition.shutters-open .anarchist-scene-transition__shutter--top {
+.proscenium-scene-transition.shutters-open .proscenium-scene-transition__shutter--top {
   transform: translateY(-100%);
 }
 
-.anarchist-scene-transition.shutters-open .anarchist-scene-transition__shutter--bottom {
+.proscenium-scene-transition.shutters-open .proscenium-scene-transition__shutter--bottom {
   transform: translateY(100%);
 }
 
-.anarchist-scene-transition.shutters-closing .anarchist-scene-transition__shutter {
+.proscenium-scene-transition.shutters-closing .proscenium-scene-transition__shutter {
   transition-duration: var(--door-close-duration);
 }
 
-.anarchist-scene-transition.shutters-closed .anarchist-scene-transition__shutter {
+.proscenium-scene-transition.shutters-closed .proscenium-scene-transition__shutter {
   transform: translateY(0);
 }
 
-.anarchist-scene-transition.shutters-opening .anarchist-scene-transition__shutter {
+.proscenium-scene-transition.shutters-opening .proscenium-scene-transition__shutter {
   transition-duration: var(--door-open-duration);
 }
 
-.anarchist-scene-transition__shutter-rib {
+.proscenium-scene-transition__shutter-rib {
   height: 11vh;
   margin: 7vh 7vw;
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -110,7 +110,7 @@
     0 8px 16px rgba(0, 0, 0, 0.32);
 }
 
-.anarchist-scene-transition__door {
+.proscenium-scene-transition__door {
   position: absolute;
   top: 0;
   width: calc(50vw + 2px);
@@ -127,37 +127,37 @@
   will-change: transform;
 }
 
-.anarchist-scene-transition__door--left {
+.proscenium-scene-transition__door--left {
   left: 0;
   border-right: 2px solid rgba(255, 210, 96, 0.65);
 }
 
-.anarchist-scene-transition__door--right {
+.proscenium-scene-transition__door--right {
   right: 0;
   border-left: 2px solid rgba(255, 210, 96, 0.65);
 }
 
-.anarchist-scene-transition.doors-open .anarchist-scene-transition__door--left {
+.proscenium-scene-transition.doors-open .proscenium-scene-transition__door--left {
   transform: translateX(-100%);
 }
 
-.anarchist-scene-transition.doors-open .anarchist-scene-transition__door--right {
+.proscenium-scene-transition.doors-open .proscenium-scene-transition__door--right {
   transform: translateX(100%);
 }
 
-.anarchist-scene-transition.doors-closing .anarchist-scene-transition__door {
+.proscenium-scene-transition.doors-closing .proscenium-scene-transition__door {
   transition-duration: var(--door-close-duration);
 }
 
-.anarchist-scene-transition.doors-closed .anarchist-scene-transition__door {
+.proscenium-scene-transition.doors-closed .proscenium-scene-transition__door {
   transform: translateX(0);
 }
 
-.anarchist-scene-transition.doors-opening .anarchist-scene-transition__door {
+.proscenium-scene-transition.doors-opening .proscenium-scene-transition__door {
   transition-duration: var(--door-open-duration);
 }
 
-.anarchist-scene-transition__door-rib {
+.proscenium-scene-transition__door-rib {
   position: relative;
   height: 18vh;
   margin: 9vh 4vw;
@@ -170,7 +170,7 @@
     0 8px 18px rgba(0, 0, 0, 0.32);
 }
 
-.anarchist-scene-transition__hazard {
+.proscenium-scene-transition__hazard {
   position: absolute;
   right: 0;
   bottom: 6vh;
@@ -187,7 +187,7 @@
   opacity: 0.75;
 }
 
-.anarchist-scene-transition__seam {
+.proscenium-scene-transition__seam {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -200,15 +200,15 @@
   transition: opacity 240ms ease;
 }
 
-.anarchist-scene-transition.doors-sealed .anarchist-scene-transition__seam {
+.proscenium-scene-transition.doors-sealed .proscenium-scene-transition__seam {
   opacity: 1;
 }
 
-.anarchist-scene-transition.doors-opening .anarchist-scene-transition__seam {
+.proscenium-scene-transition.doors-opening .proscenium-scene-transition__seam {
   opacity: 0;
 }
 
-.anarchist-scene-transition__text {
+.proscenium-scene-transition__text {
   position: absolute;
   inset: 0;
   display: flex;
@@ -220,20 +220,20 @@
   z-index: 3;
 }
 
-.anarchist-scene-transition.text-visible .anarchist-scene-transition__text {
+.proscenium-scene-transition.text-visible .proscenium-scene-transition__text {
   opacity: 1;
 }
 
-.anarchist-scene-transition.text-hidden .anarchist-scene-transition__text {
+.proscenium-scene-transition.text-hidden .proscenium-scene-transition__text {
   opacity: 0;
 }
 
-.anarchist-scene-transition.scene-transition--theme-clean {
+.proscenium-scene-transition.scene-transition--theme-clean {
   background: rgba(0, 0, 0, 0.08);
 }
 
-.anarchist-scene-transition.scene-transition--theme-clean .anarchist-scene-transition__door,
-.anarchist-scene-transition.scene-transition--theme-clean .anarchist-scene-transition__shutter {
+.proscenium-scene-transition.scene-transition--theme-clean .proscenium-scene-transition__door,
+.proscenium-scene-transition.scene-transition--theme-clean .proscenium-scene-transition__shutter {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)),
     linear-gradient(135deg, #171b1d, #0b0d0f 58%, #1f2426);
@@ -242,13 +242,13 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
-.anarchist-scene-transition.scene-transition--theme-clean .anarchist-scene-transition__hazard {
+.proscenium-scene-transition.scene-transition--theme-clean .proscenium-scene-transition__hazard {
   opacity: 0.28;
   filter: grayscale(1);
 }
 
-.anarchist-scene-transition.scene-transition--theme-terminal .anarchist-scene-transition__door,
-.anarchist-scene-transition.scene-transition--theme-terminal .anarchist-scene-transition__shutter {
+.proscenium-scene-transition.scene-transition--theme-terminal .proscenium-scene-transition__door,
+.proscenium-scene-transition.scene-transition--theme-terminal .proscenium-scene-transition__shutter {
   background:
     linear-gradient(180deg, rgba(65, 255, 103, 0.08), rgba(65, 255, 103, 0) 24%),
     repeating-linear-gradient(0deg, rgba(65, 255, 103, 0.05) 0 1px, rgba(0, 0, 0, 0) 1px 9px),
@@ -258,29 +258,29 @@
     inset 0 0 0 2px rgba(65, 255, 103, 0.12);
 }
 
-.anarchist-scene-transition.scene-transition--theme-terminal .anarchist-scene-transition__door--left {
+.proscenium-scene-transition.scene-transition--theme-terminal .proscenium-scene-transition__door--left {
   border-right-color: rgba(65, 255, 103, 0.65);
 }
 
-.anarchist-scene-transition.scene-transition--theme-terminal .anarchist-scene-transition__door--right {
+.proscenium-scene-transition.scene-transition--theme-terminal .proscenium-scene-transition__door--right {
   border-left-color: rgba(65, 255, 103, 0.65);
 }
 
-.anarchist-scene-transition.scene-transition--theme-terminal .anarchist-scene-transition__shutter--top {
+.proscenium-scene-transition.scene-transition--theme-terminal .proscenium-scene-transition__shutter--top {
   border-bottom-color: rgba(65, 255, 103, 0.64);
 }
 
-.anarchist-scene-transition.scene-transition--theme-terminal .anarchist-scene-transition__shutter--bottom {
+.proscenium-scene-transition.scene-transition--theme-terminal .proscenium-scene-transition__shutter--bottom {
   border-top-color: rgba(65, 255, 103, 0.64);
 }
 
-.anarchist-scene-transition.scene-transition--theme-terminal .anarchist-scene-transition__seam {
+.proscenium-scene-transition.scene-transition--theme-terminal .proscenium-scene-transition__seam {
   background: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(65, 255, 103, 0.82), rgba(0, 0, 0, 0));
   box-shadow: 0 0 26px rgba(65, 255, 103, 0.7);
 }
 
-.anarchist-scene-transition.scene-transition--theme-scanline .anarchist-scene-transition__door,
-.anarchist-scene-transition.scene-transition--theme-scanline .anarchist-scene-transition__shutter {
+.proscenium-scene-transition.scene-transition--theme-scanline .proscenium-scene-transition__door,
+.proscenium-scene-transition.scene-transition--theme-scanline .proscenium-scene-transition__shutter {
   background:
     linear-gradient(180deg, rgba(115, 199, 255, 0.1), rgba(115, 199, 255, 0) 24%),
     repeating-linear-gradient(0deg, rgba(115, 199, 255, 0.06) 0 1px, rgba(0, 0, 0, 0) 1px 7px),
@@ -291,29 +291,29 @@
     inset 0 0 0 2px rgba(115, 199, 255, 0.12);
 }
 
-.anarchist-scene-transition.scene-transition--theme-scanline .anarchist-scene-transition__door--left {
+.proscenium-scene-transition.scene-transition--theme-scanline .proscenium-scene-transition__door--left {
   border-right-color: rgba(115, 199, 255, 0.68);
 }
 
-.anarchist-scene-transition.scene-transition--theme-scanline .anarchist-scene-transition__door--right {
+.proscenium-scene-transition.scene-transition--theme-scanline .proscenium-scene-transition__door--right {
   border-left-color: rgba(115, 199, 255, 0.68);
 }
 
-.anarchist-scene-transition.scene-transition--theme-scanline .anarchist-scene-transition__shutter--top {
+.proscenium-scene-transition.scene-transition--theme-scanline .proscenium-scene-transition__shutter--top {
   border-bottom-color: rgba(115, 199, 255, 0.68);
 }
 
-.anarchist-scene-transition.scene-transition--theme-scanline .anarchist-scene-transition__shutter--bottom {
+.proscenium-scene-transition.scene-transition--theme-scanline .proscenium-scene-transition__shutter--bottom {
   border-top-color: rgba(115, 199, 255, 0.68);
 }
 
-.anarchist-scene-transition.scene-transition--theme-scanline .anarchist-scene-transition__seam {
+.proscenium-scene-transition.scene-transition--theme-scanline .proscenium-scene-transition__seam {
   background: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(115, 199, 255, 0.84), rgba(0, 0, 0, 0));
   box-shadow: 0 0 26px rgba(115, 199, 255, 0.72);
 }
 
-.anarchist-scene-transition.scene-transition--theme-alert .anarchist-scene-transition__door,
-.anarchist-scene-transition.scene-transition--theme-alert .anarchist-scene-transition__shutter {
+.proscenium-scene-transition.scene-transition--theme-alert .proscenium-scene-transition__door,
+.proscenium-scene-transition.scene-transition--theme-alert .proscenium-scene-transition__shutter {
   background:
     linear-gradient(180deg, rgba(255, 86, 70, 0.1), rgba(255, 86, 70, 0) 24%),
     repeating-linear-gradient(90deg, rgba(255, 216, 87, 0.09) 0 16px, rgba(0, 0, 0, 0) 16px 32px),
@@ -323,33 +323,33 @@
     inset 0 0 0 2px rgba(255, 86, 70, 0.12);
 }
 
-.anarchist-scene-transition.scene-transition--theme-alert .anarchist-scene-transition__door--left {
+.proscenium-scene-transition.scene-transition--theme-alert .proscenium-scene-transition__door--left {
   border-right-color: rgba(255, 86, 70, 0.72);
 }
 
-.anarchist-scene-transition.scene-transition--theme-alert .anarchist-scene-transition__door--right {
+.proscenium-scene-transition.scene-transition--theme-alert .proscenium-scene-transition__door--right {
   border-left-color: rgba(255, 86, 70, 0.72);
 }
 
-.anarchist-scene-transition.scene-transition--theme-alert .anarchist-scene-transition__shutter--top {
+.proscenium-scene-transition.scene-transition--theme-alert .proscenium-scene-transition__shutter--top {
   border-bottom-color: rgba(255, 86, 70, 0.72);
 }
 
-.anarchist-scene-transition.scene-transition--theme-alert .anarchist-scene-transition__shutter--bottom {
+.proscenium-scene-transition.scene-transition--theme-alert .proscenium-scene-transition__shutter--bottom {
   border-top-color: rgba(255, 86, 70, 0.72);
 }
 
-.anarchist-scene-transition.scene-transition--theme-alert .anarchist-scene-transition__seam {
+.proscenium-scene-transition.scene-transition--theme-alert .proscenium-scene-transition__seam {
   background: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(255, 86, 70, 0.86), rgba(0, 0, 0, 0));
   box-shadow: 0 0 26px rgba(255, 86, 70, 0.72);
 }
 
-.anarchist-scene-transition.scene-transition--theme-hologram .anarchist-scene-transition__fade {
+.proscenium-scene-transition.scene-transition--theme-hologram .proscenium-scene-transition__fade {
   background: #021d26;
 }
 
-.anarchist-scene-transition.scene-transition--theme-hologram .anarchist-scene-transition__door,
-.anarchist-scene-transition.scene-transition--theme-hologram .anarchist-scene-transition__shutter {
+.proscenium-scene-transition.scene-transition--theme-hologram .proscenium-scene-transition__door,
+.proscenium-scene-transition.scene-transition--theme-hologram .proscenium-scene-transition__shutter {
   background:
     linear-gradient(180deg, rgba(131, 245, 255, 0.18), rgba(131, 245, 255, 0) 30%),
     repeating-linear-gradient(0deg, rgba(131, 245, 255, 0.1) 0 1px, rgba(0, 0, 0, 0) 1px 14px),
@@ -361,8 +361,8 @@
     0 0 30px rgba(14, 196, 230, 0.18);
 }
 
-.anarchist-scene-transition.scene-transition--theme-hologram .anarchist-scene-transition__door-rib,
-.anarchist-scene-transition.scene-transition--theme-hologram .anarchist-scene-transition__shutter-rib {
+.proscenium-scene-transition.scene-transition--theme-hologram .proscenium-scene-transition__door-rib,
+.proscenium-scene-transition.scene-transition--theme-hologram .proscenium-scene-transition__shutter-rib {
   border-color: rgba(131, 245, 255, 0.2);
   background:
     linear-gradient(90deg, rgba(131, 245, 255, 0.18), rgba(255, 120, 209, 0.08) 52%, rgba(131, 245, 255, 0));
@@ -371,23 +371,23 @@
     0 0 18px rgba(14, 196, 230, 0.14);
 }
 
-.anarchist-scene-transition.scene-transition--theme-hologram .anarchist-scene-transition__door--left {
+.proscenium-scene-transition.scene-transition--theme-hologram .proscenium-scene-transition__door--left {
   border-right-color: rgba(131, 245, 255, 0.72);
 }
 
-.anarchist-scene-transition.scene-transition--theme-hologram .anarchist-scene-transition__door--right {
+.proscenium-scene-transition.scene-transition--theme-hologram .proscenium-scene-transition__door--right {
   border-left-color: rgba(131, 245, 255, 0.72);
 }
 
-.anarchist-scene-transition.scene-transition--theme-hologram .anarchist-scene-transition__shutter--top {
+.proscenium-scene-transition.scene-transition--theme-hologram .proscenium-scene-transition__shutter--top {
   border-bottom-color: rgba(131, 245, 255, 0.72);
 }
 
-.anarchist-scene-transition.scene-transition--theme-hologram .anarchist-scene-transition__shutter--bottom {
+.proscenium-scene-transition.scene-transition--theme-hologram .proscenium-scene-transition__shutter--bottom {
   border-top-color: rgba(131, 245, 255, 0.72);
 }
 
-.anarchist-scene-transition.scene-transition--theme-hologram .anarchist-scene-transition__hazard {
+.proscenium-scene-transition.scene-transition--theme-hologram .proscenium-scene-transition__hazard {
   background:
     repeating-linear-gradient(
       135deg,
@@ -397,17 +397,17 @@
   opacity: 0.5;
 }
 
-.anarchist-scene-transition.scene-transition--theme-hologram .anarchist-scene-transition__seam {
+.proscenium-scene-transition.scene-transition--theme-hologram .proscenium-scene-transition__seam {
   background: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(131, 245, 255, 0.88), rgba(255, 120, 209, 0.54), rgba(0, 0, 0, 0));
   box-shadow: 0 0 30px rgba(131, 245, 255, 0.82);
 }
 
-.anarchist-scene-transition.scene-transition--theme-classified .anarchist-scene-transition__fade {
+.proscenium-scene-transition.scene-transition--theme-classified .proscenium-scene-transition__fade {
   background: #050404;
 }
 
-.anarchist-scene-transition.scene-transition--theme-classified .anarchist-scene-transition__door,
-.anarchist-scene-transition.scene-transition--theme-classified .anarchist-scene-transition__shutter {
+.proscenium-scene-transition.scene-transition--theme-classified .proscenium-scene-transition__door,
+.proscenium-scene-transition.scene-transition--theme-classified .proscenium-scene-transition__shutter {
   background:
     linear-gradient(180deg, rgba(255, 49, 49, 0.09), rgba(255, 49, 49, 0) 28%),
     repeating-linear-gradient(135deg, rgba(255, 49, 49, 0.1) 0 12px, rgba(0, 0, 0, 0) 12px 24px),
@@ -417,8 +417,8 @@
     inset 0 0 0 2px rgba(255, 49, 49, 0.14);
 }
 
-.anarchist-scene-transition.scene-transition--theme-classified .anarchist-scene-transition__door-rib,
-.anarchist-scene-transition.scene-transition--theme-classified .anarchist-scene-transition__shutter-rib {
+.proscenium-scene-transition.scene-transition--theme-classified .proscenium-scene-transition__door-rib,
+.proscenium-scene-transition.scene-transition--theme-classified .proscenium-scene-transition__shutter-rib {
   border-color: rgba(255, 247, 234, 0.12);
   background:
     linear-gradient(90deg, rgba(255, 247, 234, 0.08), rgba(255, 49, 49, 0.08) 58%, rgba(0, 0, 0, 0));
@@ -427,23 +427,23 @@
     0 8px 16px rgba(0, 0, 0, 0.34);
 }
 
-.anarchist-scene-transition.scene-transition--theme-classified .anarchist-scene-transition__door--left {
+.proscenium-scene-transition.scene-transition--theme-classified .proscenium-scene-transition__door--left {
   border-right-color: rgba(255, 49, 49, 0.7);
 }
 
-.anarchist-scene-transition.scene-transition--theme-classified .anarchist-scene-transition__door--right {
+.proscenium-scene-transition.scene-transition--theme-classified .proscenium-scene-transition__door--right {
   border-left-color: rgba(255, 49, 49, 0.7);
 }
 
-.anarchist-scene-transition.scene-transition--theme-classified .anarchist-scene-transition__shutter--top {
+.proscenium-scene-transition.scene-transition--theme-classified .proscenium-scene-transition__shutter--top {
   border-bottom-color: rgba(255, 49, 49, 0.7);
 }
 
-.anarchist-scene-transition.scene-transition--theme-classified .anarchist-scene-transition__shutter--bottom {
+.proscenium-scene-transition.scene-transition--theme-classified .proscenium-scene-transition__shutter--bottom {
   border-top-color: rgba(255, 49, 49, 0.7);
 }
 
-.anarchist-scene-transition.scene-transition--theme-classified .anarchist-scene-transition__hazard {
+.proscenium-scene-transition.scene-transition--theme-classified .proscenium-scene-transition__hazard {
   background:
     repeating-linear-gradient(
       135deg,
@@ -453,7 +453,7 @@
   opacity: 0.46;
 }
 
-.anarchist-scene-transition.scene-transition--theme-classified .anarchist-scene-transition__seam {
+.proscenium-scene-transition.scene-transition--theme-classified .proscenium-scene-transition__seam {
   background: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(255, 49, 49, 0.86), rgba(0, 0, 0, 0));
   box-shadow: 0 0 26px rgba(255, 49, 49, 0.68);
 }

@@ -1,12 +1,12 @@
-import type { AnarchistOverlayModule } from './types';
+import type { ProsceniumModule } from './types';
 
 declare global {
   interface ModuleConfig {
-    'anarchist-overlay': AnarchistOverlayModule;
+    'proscenium': ProsceniumModule;
   }
 
   interface RequiredModules {
-    'anarchist-overlay': true;
+    'proscenium': true;
   }
 }
 

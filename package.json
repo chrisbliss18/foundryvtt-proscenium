@@ -1,9 +1,18 @@
 {
-  "name": "foundry-module-ts",
-  "version": "0.2.0",
-  "description": "A template project for FoundryVTT modules using Typescript",
+  "name": "foundryvtt-proscenium",
+  "version": "0.1.0",
+  "description": "Cinematic overlays, briefings, and scene transitions for Foundry VTT.",
+  "author": "Chris Jean",
   "license": "MIT",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrisbliss18/foundryvtt-proscenium.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chrisbliss18/foundryvtt-proscenium/issues"
+  },
+  "homepage": "https://github.com/chrisbliss18/foundryvtt-proscenium#readme",
   "scripts": {
     "build": "tsc && vite build",
     "watch": "tsc && vite build --watch"

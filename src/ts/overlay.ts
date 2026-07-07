@@ -55,9 +55,9 @@ const handleOverlayCreation = async (config: OverlayConfig, html: string) => {
     throw new Error('Unable to render overlay template.');
   }
 
-  overlay.dataset.anarchistOverlay = 'true';
+  overlay.dataset.prosceniumOverlay = 'true';
   if(normalizedConfig.id) {
-    overlay.dataset.anarchistOverlayId = normalizedConfig.id;
+    overlay.dataset.prosceniumOverlayId = normalizedConfig.id;
   }
 
   overlay.innerHTML = html;
@@ -115,12 +115,12 @@ const assertGM = (action: string) => {
 }
 
 const getOverlayById = (id: string) => {
-  return Array.from(document.querySelectorAll<HTMLElement>('.anarchist-overlay'))
-    .find(overlay => overlay.dataset.anarchistOverlayId === id);
+  return Array.from(document.querySelectorAll<HTMLElement>('.proscenium-overlay'))
+    .find(overlay => overlay.dataset.prosceniumOverlayId === id);
 }
 
 const removeAllOverlays = () => {
-  document.querySelectorAll<HTMLElement>('.anarchist-overlay').forEach(overlay => overlay.remove());
+  document.querySelectorAll<HTMLElement>('.proscenium-overlay').forEach(overlay => overlay.remove());
 }
 
 type ClosableApplication = {
