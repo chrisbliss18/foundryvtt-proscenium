@@ -558,10 +558,23 @@ const resolveSceneTransitionSounds = (
   sounds: SceneTransitionSounds | undefined,
   soundProfileType: SceneTransitionSoundProfileType
 ) => {
-  return {
-    ...sceneTransitionSoundProfileDefaults[soundProfileType],
-    ...sounds
+  const resolvedSounds = {
+    ...sceneTransitionSoundProfileDefaults[soundProfileType]
   };
+
+  if (!sounds) {
+    return resolvedSounds;
+  }
+
+  setIfDefined(resolvedSounds, 'doorClose', sounds.doorClose);
+  setIfDefined(resolvedSounds, 'doorSeal', sounds.doorSeal);
+  setIfDefined(resolvedSounds, 'doorUnlock', sounds.doorUnlock);
+  setIfDefined(resolvedSounds, 'doorOpen', sounds.doorOpen);
+  setIfDefined(resolvedSounds, 'typingClick', sounds.typingClick);
+  setIfDefined(resolvedSounds, 'doorVolume', sounds.doorVolume);
+  setIfDefined(resolvedSounds, 'typingVolume', sounds.typingVolume);
+
+  return resolvedSounds;
 };
 
 const applyInheritedTextTheme = (
@@ -672,5 +685,15 @@ const waitForTaskOrCancel = async (task: Promise<unknown>, controller: Transitio
 const assertGM = (action: string) => {
   if (!(game as ReadyGame).user.isGM) {
     throw new Error(`Only GM users can ${action}.`);
+  }
+};
+
+const setIfDefined = <T extends object, K extends keyof T>(
+  target: T,
+  key: K,
+  value: T[K] | undefined
+) => {
+  if (value !== undefined) {
+    target[key] = value;
   }
 };

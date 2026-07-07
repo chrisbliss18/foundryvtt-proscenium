@@ -400,15 +400,16 @@ const toSceneTransitionSounds = (config?: SceneTransitionAudioConfig): SceneTran
     return undefined;
   }
 
-  return {
-    doorClose: config.overrides?.close,
-    doorSeal: config.overrides?.seal,
-    doorUnlock: config.overrides?.unlock,
-    doorOpen: config.overrides?.open,
-    typingClick: config.overrides?.typing,
-    doorVolume: config.volume?.doors,
-    typingVolume: config.volume?.typing
-  };
+  const sounds: SceneTransitionSounds = {};
+  setIfDefined(sounds, 'doorClose', config.overrides?.close);
+  setIfDefined(sounds, 'doorSeal', config.overrides?.seal);
+  setIfDefined(sounds, 'doorUnlock', config.overrides?.unlock);
+  setIfDefined(sounds, 'doorOpen', config.overrides?.open);
+  setIfDefined(sounds, 'typingClick', config.overrides?.typing);
+  setIfDefined(sounds, 'doorVolume', config.volume?.doors);
+  setIfDefined(sounds, 'typingVolume', config.volume?.typing);
+
+  return Object.keys(sounds).length ? sounds : undefined;
 };
 
 const toTextOverlayAudioConfig = (config?: TextOverlayAudioConfig): OverlayTextAudioConfig | undefined => {
@@ -733,3 +734,13 @@ const toLegacyTransitionType = (transitionType: SceneTransitionMotionType): Scen
 };
 
 const msToSeconds = (milliseconds: number) => milliseconds / 1000;
+
+const setIfDefined = <T extends object, K extends keyof T>(
+  target: T,
+  key: K,
+  value: T[K] | undefined
+) => {
+  if (value !== undefined) {
+    target[key] = value;
+  }
+};
