@@ -478,7 +478,53 @@ The `sceneName` value must match exactly one scene. If no scene matches, or if m
 
 ### Experimental Industrial Sounds
 
-The default industrial door sounds are unchanged. Two alternate industrial sound banks are bundled for testing and can be selected with `sounds`.
+The default industrial door sounds are unchanged. Alternate industrial sound banks are bundled for testing and can be selected with `sounds`.
+
+CC0 bulkhead:
+
+```js
+const ao = game.modules.get('anarchist-overlay').api;
+
+await ao.playSceneTransition({
+  sceneName: 'TARGET SCENE NAME',
+  transition: {
+    type: 'industrial-doors',
+    theme: { type: 'industrial' }
+  },
+  text: {
+    alignX: 'center',
+    textAlign: 'center',
+    maxWidth: '820px',
+    frame: { type: 'mission-card' },
+    theme: { type: 'industrial' },
+    effect: { type: 'decode', duration: 1.1, lineDelay: 0.22 },
+    lines: [
+      { text: 'BULKHEAD SOUND TEST', fontSize: '44px' },
+      { text: 'AIRLOCK CYCLE IN PROGRESS', fontSize: '26px' }
+    ]
+  },
+  timing: {
+    doorCloseMs: 2600,
+    doorUnlockMs: 1500,
+    doorOpenMs: 4100,
+    textFadeMs: 900
+  },
+  sounds: {
+    doorClose: 'modules/anarchist-overlay/sounds/industrial-bulkhead-close.ogg',
+    doorSeal: 'modules/anarchist-overlay/sounds/industrial-bulkhead-seal.ogg',
+    doorUnlock: 'modules/anarchist-overlay/sounds/industrial-bulkhead-unlock.ogg',
+    doorOpen: 'modules/anarchist-overlay/sounds/industrial-bulkhead-open.ogg',
+    doorVolume: 0.82
+  }
+});
+```
+
+The bulkhead bank is derived from CC0 Freesound sources:
+
+- `industrial-bulkhead-close.ogg`: [SecureSubset, "Large Metal Bunker Doors, Opening and Closing, Resonances"](https://freesound.org/people/SecureSubset/sounds/845666/), cut from about 5.4s to 8.0s.
+- `industrial-bulkhead-seal.ogg`: [SecureSubset, "Large Metal Bunker Doors, Opening and Closing, Resonances"](https://freesound.org/people/SecureSubset/sounds/845666/), cut from about 8.5s to 11.5s.
+- `industrial-bulkhead-unlock.ogg`: [Velvorn, "sas_fermeture.WAV"](https://freesound.org/people/Velvorn/sounds/95772/), cut from the opening 1.55s.
+- `industrial-bulkhead-open.ogg`: [lezaarth, "Electric Door"](https://freesound.org/people/lezaarth/sounds/316092/), cut from about 1.0s to 5.1s.
 
 Heavy mechanical:
 
