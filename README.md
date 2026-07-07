@@ -40,6 +40,8 @@ proscenium.showHtmlOverlay(config)
 
 Use `transitionToScene` for scene activation with a cinematic reveal, `showTextOverlay` for styled text without a scene change, and `showHtmlOverlay` only when you intentionally need raw GM-provided HTML.
 
+Manual verification macros are available in [docs/test-macros.md](docs/test-macros.md).
+
 ## Scene Transitions
 
 ```js

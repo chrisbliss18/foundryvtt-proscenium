@@ -12,7 +12,7 @@ export const createTransitionOverlay = (config: NormalizedSceneTransitionConfig)
     'proscenium-scene-transition',
     `scene-transition--${config.transition.type}`,
     `scene-transition--theme-${config.transition.theme.type}`,
-    config.transition.type === 'industrial-doors' ? 'doors-open' : '',
+    config.transition.type === 'split-door' ? 'doors-open' : '',
     config.transition.type === 'horizontal-shutter' ? 'shutters-open' : '',
     config.aboveUi ? 'above-ui' : '',
     config.blockInteractions ? 'block-interactions' : ''

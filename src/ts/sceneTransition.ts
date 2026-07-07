@@ -621,16 +621,16 @@ const resolveSceneIdByName = (name: string) => {
 };
 
 const resolveSceneTransitionType = (transitionType?: string): SceneTransitionType => {
-  const resolvedTransitionType = transitionType ?? 'industrial-doors';
+  const resolvedTransitionType = transitionType ?? 'split-door';
   if (
-    resolvedTransitionType === 'industrial-doors'
+    resolvedTransitionType === 'split-door'
     || resolvedTransitionType === 'fade'
     || resolvedTransitionType === 'horizontal-shutter'
   ) {
     return resolvedTransitionType;
   }
 
-  throw new Error(`Unknown scene transition type "${resolvedTransitionType}". Expected "industrial-doors", "horizontal-shutter", or "fade".`);
+  throw new Error(`Unknown scene transition type "${resolvedTransitionType}". Expected "split-door", "horizontal-shutter", or "fade".`);
 };
 
 const notifyError = (error: unknown) => {

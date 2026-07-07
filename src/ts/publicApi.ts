@@ -11,8 +11,7 @@ import type {
   SceneTransitionConfig,
   SceneTransitionSoundProfileType,
   SceneTransitionSounds,
-  SceneTransitionTiming,
-  SceneTransitionType
+  SceneTransitionTiming
 } from './sceneTransitionTypes';
 import type {
   TextCrawlAlignment,
@@ -324,7 +323,7 @@ const toSceneTransitionConfig = async (config: TransitionToSceneConfig): Promise
     sceneName: config.scene.name,
     id: config.id,
     transition: {
-      type: toLegacyTransitionType(transitionType),
+      type: transitionType,
       theme: {
         type: resolvePresentationThemeType(transitionStyle)
       }
@@ -723,14 +722,6 @@ const resolveTransitionMotionType = (transitionType: string): SceneTransitionMot
   }
 
   throw new Error(`Unknown scene transition type "${transitionType}". Expected "split-door", "horizontal-shutter", or "fade".`);
-};
-
-const toLegacyTransitionType = (transitionType: SceneTransitionMotionType): SceneTransitionType => {
-  if (transitionType === 'split-door') {
-    return 'industrial-doors';
-  }
-
-  return transitionType;
 };
 
 const msToSeconds = (milliseconds: number) => milliseconds / 1000;

@@ -1,7 +1,7 @@
 import type { TextCrawlConfig } from './textCrawl';
 import type { PresentationThemeConfig } from './theme';
 
-export type SceneTransitionType = 'industrial-doors' | 'horizontal-shutter' | 'fade';
+export type SceneTransitionType = 'split-door' | 'horizontal-shutter' | 'fade';
 
 export type SceneTransitionAnimationConfig = {
   type?: SceneTransitionType;
