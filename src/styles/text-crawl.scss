@@ -122,6 +122,7 @@
   --text-crawl-accent-soft: rgba(255, 216, 87, 0.18);
   --text-crawl-sender-border: rgba(255, 216, 87, 0.55);
   --text-crawl-sender-background: rgba(0, 0, 0, 0.22);
+  --text-crawl-sender-inline-space: clamp(300px, 38vw, 380px);
 }
 
 .text-crawl__content {
@@ -152,6 +153,20 @@
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
     gap: clamp(14px, 2.4vw, 26px);
+  }
+}
+
+.text-crawl--has-sender.text-crawl--sender-left,
+.text-crawl--has-sender.text-crawl--sender-right {
+  .text-crawl__text-block {
+    max-width: min(
+      calc(var(--text-crawl-max-width) + var(--text-crawl-sender-inline-space)),
+      calc(100vw - 32px)
+    );
+  }
+
+  .text-crawl__body {
+    max-width: var(--text-crawl-max-width);
   }
 }
 
