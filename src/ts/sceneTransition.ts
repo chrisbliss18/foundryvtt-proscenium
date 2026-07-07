@@ -6,16 +6,18 @@ import type {
   SceneTransitionSounds,
   SceneTransitionSocketConfig,
   SceneTransitionTiming,
+  SceneTransitionType,
   TransitionAudio,
   TransitionAudioController,
   TransitionController
 } from './sceneTransitionTypes';
-import { createTextCrawlHtml } from './textCrawl';
+import { createTextCrawlHtml, resolveTextCrawlFrameType } from './textCrawl';
 import { moduleId } from './constants';
 import { createTransitionAudioController } from './sceneTransitionAudio';
 import {
   createTransitionOverlay,
   getDoorElement,
+  getFadeElement,
   getTextElement,
   prepareOverlayForAnimation,
   removeExistingTransition,
@@ -26,7 +28,8 @@ import {
 export type {
   SceneTransitionConfig,
   SceneTransitionSounds,
-  SceneTransitionTiming
+  SceneTransitionTiming,
+  SceneTransitionType
 } from './sceneTransitionTypes';
 
 const activeTransitions = new Map<string, TransitionController>();
@@ -41,6 +44,8 @@ const defaultTiming: Required<SceneTransitionTiming> = {
   briefingMs: 0,
   doorUnlockMs: 700,
   doorOpenMs: 2400,
+  fadeOutMs: 1200,
+  fadeInMs: 1200,
   textFadeMs: 900,
   sceneReadyTimeoutMs: 10000
 };
@@ -58,6 +63,10 @@ const defaultSounds: Required<SceneTransitionSounds> = {
 export const playSceneTransition = (socket: ModuleSocket) => async (config: SceneTransitionConfig) => {
   try {
     assertGM('play scene transitions');
+    resolveSceneTransitionType(config.transition?.type);
+    if (config.text?.frame?.type) {
+      resolveTextCrawlFrameType(config.text.frame.type);
+    }
     const sceneId = resolveSceneIdByName(config.sceneName);
 
     return await socket.executeForEveryone(
@@ -99,27 +108,11 @@ const handleSceneTransition = async (config: SceneTransitionSocketConfig, contro
   try {
     await prepareOverlayForAnimation(overlay);
 
-    if (await closeDoors(overlay, normalizedConfig, controller, audio)) {
-      return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, audio, typingAudio);
-    }
-
-    if (normalizedConfig.text) {
-      typingAudio = await renderBriefingText(overlay, normalizedConfig, controller, audio);
-    }
-
-    if (await activateTargetScene(normalizedConfig, controllingUserId, controller)) {
-      return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, audio, typingAudio);
-    }
-
-    await typingAudio?.stop();
-    typingAudio = undefined;
-
-    if (await openDoors(overlay, normalizedConfig, controller, audio)) {
-      return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, audio, typingAudio);
-    }
-
-    overlay.classList.add('text-hidden');
-    if (await waitForTransition(getTextElement(overlay), 'opacity', normalizedConfig.timing.textFadeMs, controller)) {
+    const result = normalizedConfig.transition.type === 'fade'
+      ? await runFadeTransition(overlay, normalizedConfig, controllingUserId, controller, audio)
+      : await runIndustrialDoorTransition(overlay, normalizedConfig, controllingUserId, controller, audio);
+    typingAudio = result.typingAudio;
+    if (result.canceled) {
       return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, audio, typingAudio);
     }
   } finally {
@@ -131,6 +124,85 @@ const handleSceneTransition = async (config: SceneTransitionSocketConfig, contro
     await audio.stopAll();
     overlay.remove();
   }
+};
+
+type SceneTransitionRunResult = {
+  canceled: boolean;
+  typingAudio?: TransitionAudio;
+};
+
+const runIndustrialDoorTransition = async (
+  overlay: HTMLElement,
+  config: NormalizedSceneTransitionConfig,
+  controllingUserId: string,
+  controller: TransitionController,
+  audio: TransitionAudioController
+): Promise<SceneTransitionRunResult> => {
+  let typingAudio: TransitionAudio | undefined;
+
+  if (await closeDoors(overlay, config, controller, audio)) {
+    return { canceled: true, typingAudio };
+  }
+
+  if (config.text) {
+    typingAudio = await renderBriefingText(overlay, config, controller, audio);
+  }
+
+  if (await activateTargetScene(config, controllingUserId, controller)) {
+    return { canceled: true, typingAudio };
+  }
+
+  await typingAudio?.stop();
+  typingAudio = undefined;
+
+  if (await openDoors(overlay, config, controller, audio)) {
+    return { canceled: true, typingAudio };
+  }
+
+  overlay.classList.add('text-hidden');
+  if (await waitForTransition(getTextElement(overlay), 'opacity', config.timing.textFadeMs, controller)) {
+    return { canceled: true, typingAudio };
+  }
+
+  return { canceled: false, typingAudio };
+};
+
+const runFadeTransition = async (
+  overlay: HTMLElement,
+  config: NormalizedSceneTransitionConfig,
+  controllingUserId: string,
+  controller: TransitionController,
+  audio: TransitionAudioController
+): Promise<SceneTransitionRunResult> => {
+  let typingAudio: TransitionAudio | undefined;
+
+  if (await fadeToBlack(overlay, config, controller)) {
+    return { canceled: true, typingAudio };
+  }
+
+  if (config.text) {
+    typingAudio = await renderBriefingText(overlay, config, controller, audio);
+  }
+
+  if (await activateTargetScene(config, controllingUserId, controller)) {
+    return { canceled: true, typingAudio };
+  }
+
+  await typingAudio?.stop();
+  typingAudio = undefined;
+
+  if (config.text) {
+    overlay.classList.add('text-hidden');
+    if (await waitForTransition(getTextElement(overlay), 'opacity', config.timing.textFadeMs, controller)) {
+      return { canceled: true, typingAudio };
+    }
+  }
+
+  if (await fadeFromBlack(overlay, config, controller)) {
+    return { canceled: true, typingAudio };
+  }
+
+  return { canceled: false, typingAudio };
 };
 
 const closeDoors = async (
@@ -152,6 +224,29 @@ const closeDoors = async (
   overlay.classList.add('doors-sealed');
   audio.play(config.sounds.doorSeal, config.sounds.doorVolume);
   return false;
+};
+
+const fadeToBlack = async (
+  overlay: HTMLElement,
+  config: NormalizedSceneTransitionConfig,
+  controller: TransitionController
+) => {
+  overlay.classList.add('fade-covering');
+  overlay.classList.add('fade-black');
+
+  return waitForTransition(getFadeElement(overlay), 'opacity', config.timing.fadeOutMs, controller);
+};
+
+const fadeFromBlack = async (
+  overlay: HTMLElement,
+  config: NormalizedSceneTransitionConfig,
+  controller: TransitionController
+) => {
+  overlay.classList.remove('fade-covering');
+  overlay.classList.add('fade-revealing');
+  overlay.classList.remove('fade-black');
+
+  return waitForTransition(getFadeElement(overlay), 'opacity', config.timing.fadeInMs, controller);
 };
 
 const renderBriefingText = async (
@@ -262,6 +357,7 @@ const waitForSceneReady = (sceneId: string, timeoutMs: number) => {
 };
 
 const normalizeConfig = (config: SceneTransitionSocketConfig): NormalizedSceneTransitionConfig => {
+  const transitionType = resolveSceneTransitionType(config.transition?.type);
   const timing = {
     ...defaultTiming,
     ...config.timing,
@@ -272,6 +368,9 @@ const normalizeConfig = (config: SceneTransitionSocketConfig): NormalizedSceneTr
     sceneId: config.sceneId,
     sceneName: config.sceneName,
     id: config.id ?? 'scene-transition',
+    transition: {
+      type: transitionType
+    },
     text: config.text,
     timing,
     sounds: {
@@ -308,6 +407,15 @@ const resolveSceneIdByName = (name: string) => {
   }
 
   return sceneId;
+};
+
+const resolveSceneTransitionType = (transitionType?: string): SceneTransitionType => {
+  const resolvedTransitionType = transitionType ?? 'industrial-doors';
+  if (resolvedTransitionType === 'industrial-doors' || resolvedTransitionType === 'fade') {
+    return resolvedTransitionType;
+  }
+
+  throw new Error(`Unknown scene transition type "${resolvedTransitionType}". Expected "industrial-doors" or "fade".`);
 };
 
 const notifyError = (error: unknown) => {

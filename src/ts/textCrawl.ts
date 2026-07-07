@@ -1,16 +1,37 @@
 import {moduleId} from "./constants";
 
+export type TextCrawlFrameType = 'none' | 'cinematic-bars' | 'lancer-bar';
+
+export type TextCrawlFrameConfig = {
+  type?: TextCrawlFrameType;
+};
+
+type TextCrawlLineConfig = {
+  text: string;
+  fontSize?: string;
+};
+
 export type TextCrawlConfig = {
   offsetX?: string;
   offsetY?: string;
   typingTime?: number;
   delay?: number;
-  blackBars?: boolean;
-  lines: { text: string, fontSize?: string }[];
+  frame?: TextCrawlFrameConfig;
+  lines: TextCrawlLineConfig[];
   glitchEffect?: { time: number } | false;
 };
 
-type NormalizedConfig = Required<TextCrawlConfig>;
+type NormalizedConfig = {
+  offsetX: string;
+  offsetY: string;
+  typingTime: number;
+  delay: number;
+  frame: Required<TextCrawlFrameConfig>;
+  frameTypeClass: string;
+  showCinematicBars: boolean;
+  lines: Required<TextCrawlLineConfig>[];
+  glitchEffect: { time: number } | false;
+};
 
 export const createTextCrawlHtml = async (config: TextCrawlConfig) => {
   const normalizedConfig = normalizeConfig(config);
@@ -28,14 +49,28 @@ export const createTextCrawlHtml = async (config: TextCrawlConfig) => {
   });
 }
 
+export const resolveTextCrawlFrameType = (frameType?: string): TextCrawlFrameType => {
+  const resolvedFrameType = frameType ?? 'cinematic-bars';
+  if (resolvedFrameType === 'none' || resolvedFrameType === 'cinematic-bars' || resolvedFrameType === 'lancer-bar') {
+    return resolvedFrameType;
+  }
+
+  throw new Error(`Unknown text crawl frame type "${resolvedFrameType}". Expected "none", "cinematic-bars", or "lancer-bar".`);
+};
 
 const normalizeConfig = (config: TextCrawlConfig): NormalizedConfig => {
+  const frameType = resolveTextCrawlFrameType(config.frame?.type);
+
   return {
     offsetX: config.offsetX ?? '0',
     offsetY: config.offsetY ?? '0',
     typingTime: config.typingTime ?? 2,
     delay: config.delay ?? 1,
-    blackBars: config.blackBars ?? true,
+    frame: {
+      type: frameType
+    },
+    frameTypeClass: `text-crawl--${frameType}`,
+    showCinematicBars: frameType === 'cinematic-bars',
     lines: config.lines.map(line => ({text: line.text, fontSize: line.fontSize ?? '32px'})),
     glitchEffect: config.glitchEffect ?? false
   };

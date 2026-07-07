@@ -1,4 +1,4 @@
-@keyframes blackBar {
+@keyframes cinematicBar {
   from {
     height: 0
   }
@@ -16,20 +16,62 @@
   }
 }
 
-.bar {
+.text-crawl {
+  position: relative;
+}
+
+.text-crawl__content {
+  position: relative;
+  z-index: 1;
+}
+
+.text-crawl__cinematic-bar {
   position: absolute;
+  left: 0;
   width: 100%;
   height: 10vh;
   background-color: black;
-  animation: blackBar 4s;
+  animation: cinematicBar 4s;
 
-  &.top {
+  &--top {
     top: 0;
   }
 
-  &.bottom {
+  &--bottom {
     bottom: 0;
   }
+}
+
+.text-crawl--lancer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+
+  .text-crawl__content {
+    width: min(92vw, 1160px);
+    padding: 18px clamp(20px, 3vw, 42px);
+    border-top: 2px solid rgba(255, 216, 87, 0.95);
+    border-bottom: 2px solid rgba(255, 216, 87, 0.95);
+    background:
+      linear-gradient(90deg, rgba(8, 10, 11, 0.95), rgba(26, 32, 33, 0.92) 50%, rgba(8, 10, 11, 0.95)),
+      repeating-linear-gradient(90deg, rgba(255, 216, 87, 0.08) 0 1px, rgba(255, 216, 87, 0) 1px 18px);
+    box-shadow:
+      0 0 28px rgba(0, 0, 0, 0.8),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.65);
+  }
+}
+
+.text-crawl--cinematic-bars {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.text-crawl--none {
+  display: block;
 }
 
 .text-crawl-line {

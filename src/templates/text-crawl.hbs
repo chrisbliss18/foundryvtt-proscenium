@@ -1,54 +1,33 @@
-<style>
-  @keyframes typing {
-    from {
-      width: 0
-    }
-  }
+<div class="text-crawl {{frameTypeClass}}">
+  {{#if showCinematicBars}}
+    <div class="text-crawl__cinematic-bar text-crawl__cinematic-bar--top"></div>
+    <div class="text-crawl__cinematic-bar text-crawl__cinematic-bar--bottom"></div>
+  {{/if}}
 
-  @keyframes blink {
-    50% {
-      border-color: white
-    }
-  }
-</style>
-
-{{#if blackBars}}
-  <div class="bar top"></div>
-  <div class="bar bottom"></div>
-{{/if}}
-
-<div style="margin-left: {{offsetX}}; margin-top: {{offsetY}}">
-  {{#each lines}}
-    <div style="
-      width: calc({{textLength}}ch + 6px);
-      animation:
-      typing {{typingTime}}s steps({{textLength}}) {{startDelay}}s                  normal backwards,
-      blink  .5s             step-end              {{startDelay}}s {{#if isLastLine}}infinite{{else}}{{cursorDelay}}{{/if}} alternate
-      {{#if glitchEffect}}, glitch {{glitchEffect.time}}s infinite{{/if}};
-      white-space: nowrap;
-      overflow: hidden;
-      border-right: 3px solid;
-      font-family: monospace;
-      text-shadow: 3px 3px 2px black;
-      font-size: {{fontSize}};
-      border-color: transparent;
-      color: white;
-      line-height: 1;
-      {{#if glitchEffect}}
-        --glitchTime: {{glitchEffect.time}}s;
-      {{/if}}
-      "
-      {{#if glitchEffect}}
-         class="glitch"
-      {{/if}}
-    >
-      {{#if glitchEffect}}
-        <span aria-hidden="true">{{text}}</span>
-      {{/if}}
-      {{text}}
-      {{#if glitchEffect}}
-        <span aria-hidden="true">{{text}}</span>
-      {{/if}}
-    </div>
-  {{/each}}
+  <div class="text-crawl__content" style="margin-left: {{offsetX}}; margin-top: {{offsetY}}">
+    {{#each lines}}
+      <div
+        style="
+          width: calc({{textLength}}ch + 6px);
+          animation:
+            typing {{typingTime}}s steps({{textLength}}) {{startDelay}}s normal backwards,
+            blink .5s step-end {{startDelay}}s {{#if isLastLine}}infinite{{else}}{{cursorDelay}}{{/if}} alternate
+            {{#if glitchEffect}}, glitch {{glitchEffect.time}}s infinite{{/if}};
+          font-size: {{fontSize}};
+          {{#if glitchEffect}}
+            --glitchTime: {{glitchEffect.time}}s;
+          {{/if}}
+        "
+        class="text-crawl-line{{#if glitchEffect}} glitch{{/if}}"
+      >
+        {{#if glitchEffect}}
+          <span aria-hidden="true">{{text}}</span>
+        {{/if}}
+        {{text}}
+        {{#if glitchEffect}}
+          <span aria-hidden="true">{{text}}</span>
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
 </div>

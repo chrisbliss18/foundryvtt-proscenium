@@ -13,7 +13,7 @@ Install using a manifest link:
 https://github.com/reynevan24/anarchist-overlay/releases/latest/download/module.json
 ```
 
-## Example usage:
+## Example Usage
 
 Macro:
 ```js
@@ -29,7 +29,9 @@ const textConfig = {
   offsetY: '0',
   typingTime: 2,
   delay: 1,
-  blackBars: true,
+  frame: {
+    type: 'cinematic-bars'
+  },
   lines: [{
       text: 'MISSION 1: BUG HUNT',
       fontSize: '52px',
@@ -59,12 +61,38 @@ const textHtml = await anarchistOverlay.createTextCrawlHtml(textConfig);
 await anarchistOverlay.createOverlay(overlayConfig, textHtml);
 ```
 
-The legacy API shape still works for existing macros:
+Text crawl frames can be set to `cinematic-bars`, `lancer-bar`, or `none`.
+
+### Lancer-Style Bar
 
 ```js
-const anarchistOverlay = game.modules.get('anarchist-overlay');
-const textHtml = await anarchistOverlay.createTextCrawlHtml(textConfig);
-await anarchistOverlay.createOverlay(overlayConfig, textHtml);
+const anarchistOverlay = game.modules.get('anarchist-overlay').api;
+
+const textHtml = await anarchistOverlay.createTextCrawlHtml({
+  typingTime: 1.2,
+  delay: 0.3,
+  frame: {
+    type: 'lancer-bar'
+  },
+  lines: [
+    {
+      text: 'SITREP UPDATED',
+      fontSize: '34px'
+    },
+    {
+      text: 'HOSTILE CONTACTS DETECTED',
+      fontSize: '24px'
+    }
+  ]
+});
+
+await anarchistOverlay.createOverlay({
+  id: 'sitrep-update',
+  positionX: 'center',
+  positionY: 'center',
+  closeTime: 8,
+  clearExisting: true
+}, textHtml);
 ```
 
 Effect:
@@ -87,7 +115,9 @@ const textConfig = {
     offsetY: '0',
     typingTime: 1.5,
     delay: 0.5,
-    blackBars: false,
+    frame: {
+      type: 'none'
+    },
     glitchEffect: { time: 0.5 },
     lines: [
       {
@@ -131,7 +161,7 @@ await anarchistOverlay.createOverlay(overlayConfig, textHtml);
 
 ## API
 
-All methods are available from `game.modules.get('anarchist-overlay').api`. For backwards compatibility, the same methods are also attached directly to the module object.
+All methods are available from `game.modules.get('anarchist-overlay').api`.
 
 ```js
 const anarchistOverlay = game.modules.get('anarchist-overlay').api;
@@ -173,19 +203,24 @@ Renders HTML for a text crawl that can be passed into `createOverlay`.
 
 ### `playSceneTransition(config)`
 
-Plays a prototype scene transition on every connected client. This must be called by a GM. The transition closes animated industrial doors over the current scene, renders optional text crawl content, activates the target scene while the doors are closed, then opens the doors and fades the text. Press Escape during the transition to locally cancel the remaining animation on only your client.
+Plays a scene transition on every connected client. This must be called by a GM. Supported transition types are `industrial-doors` and `fade`. Press Escape during the transition to locally cancel the remaining animation on only your client.
 
 ```js
 const anarchistOverlay = game.modules.get('anarchist-overlay').api;
 
 await anarchistOverlay.playSceneTransition({
   sceneName: 'TARGET SCENE NAME',
+  transition: {
+    type: 'industrial-doors'
+  },
   text: {
     offsetX: '20px',
     offsetY: '0',
     typingTime: 2,
     delay: 1,
-    blackBars: false,
+    frame: {
+      type: 'none'
+    },
     lines: [
       {
         text: 'MISSION 1: BUG HUNT',
@@ -210,7 +245,40 @@ await anarchistOverlay.playSceneTransition({
 });
 ```
 
-The industrial door animation and bundled transition sounds are used by default. Pass `timing` or `sounds` only when you want to override the defaults.
+For a simple fade transition:
+
+```js
+await anarchistOverlay.playSceneTransition({
+  sceneName: 'TARGET SCENE NAME',
+  transition: {
+    type: 'fade'
+  },
+  text: {
+    typingTime: 1.5,
+    delay: 0.5,
+    frame: {
+      type: 'lancer-bar'
+    },
+    lines: [
+      {
+        text: 'ARRIVAL VECTOR CONFIRMED',
+        fontSize: '34px'
+      },
+      {
+        text: 'DROP ZONE: SECURE FOR DEPLOYMENT',
+        fontSize: '24px'
+      }
+    ]
+  },
+  timing: {
+    fadeOutMs: 1200,
+    fadeInMs: 1200,
+    textFadeMs: 700
+  }
+});
+```
+
+The industrial door animation and bundled transition sounds are used by default. Pass `transition`, `timing`, or `sounds` only when you want to override the defaults.
 
 Bundled sound defaults live under `modules/anarchist-overlay/sounds/`: `industrial-door-close.ogg`, `industrial-door-seal.ogg`, `industrial-door-unlock.ogg`, `industrial-door-open.ogg`, and `mechanical-typing-click.ogg`.
 
@@ -231,27 +299,38 @@ export type OverlayConfig = {
   blockInteractions?: boolean; // should it block interactions with canvas and/or UI (defaults to true)
 }
 //Text config
+export type TextCrawlFrameType = 'none' | 'cinematic-bars' | 'lancer-bar';
+
 export type TextCrawlConfig = {
   offsetX?: string; // for example '15px'
   offsetY?: string; // for example '15px'
   typingTime?: number, // how long (in seconds) does the typing animation take per one line
   delay?: number, // how long (in seconds) does the typing animation pause before next line is typed
-  blackBars?: boolean, // should black bars on top and bottom be rendered
+  frame?: {
+    type?: TextCrawlFrameType; // defaults to 'cinematic-bars'
+  };
   lines: { text: string, fontSize?: string }[], // list of lines to be rendered
   glitchEffect?: { time: number } | false; // adds a glitch effect. Should contain object with information how long should animation loop take
 };
 
 // Scene transition config
+export type SceneTransitionType = 'industrial-doors' | 'fade';
+
 export type SceneTransitionConfig = {
   sceneName: string; // target scene name. Must match exactly and be unique.
   id?: string; // optional transition id, defaults to 'scene-transition'
+  transition?: {
+    type?: SceneTransitionType; // defaults to 'industrial-doors'
+  };
   text?: TextCrawlConfig; // optional text crawl config rendered while doors are closed
   timing?: {
     doorCloseMs?: number; // door close animation duration. Default: 2200
     briefingMs?: number; // how long text remains before doors open. Defaults from text line timing.
     doorUnlockMs?: number; // delay after the unlock sound before doors open. Default: 700
     doorOpenMs?: number; // door open animation duration. Default: 2400
-    textFadeMs?: number; // text fade duration after doors open. Default: 900
+    fadeOutMs?: number; // fade-to-black animation duration. Default: 1200
+    fadeInMs?: number; // fade-from-black animation duration. Default: 1200
+    textFadeMs?: number; // text fade duration before the transition reveal completes. Default: 900
     sceneReadyTimeoutMs?: number; // max wait for the target scene canvas to be ready. Default: 10000
   };
   sounds?: {

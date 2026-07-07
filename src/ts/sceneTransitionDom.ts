@@ -10,7 +10,8 @@ export const createTransitionOverlay = (config: NormalizedSceneTransitionConfig)
   overlay.className = [
     'anarchist-overlay',
     'anarchist-scene-transition',
-    'doors-open',
+    `scene-transition--${config.transition.type}`,
+    config.transition.type === 'industrial-doors' ? 'doors-open' : '',
     config.aboveUi ? 'above-ui' : '',
     config.blockInteractions ? 'block-interactions' : ''
   ].filter(Boolean).join(' ');
@@ -18,8 +19,11 @@ export const createTransitionOverlay = (config: NormalizedSceneTransitionConfig)
   overlay.dataset.anarchistOverlayId = config.id;
   overlay.style.setProperty('--door-close-duration', `${config.timing.doorCloseMs}ms`);
   overlay.style.setProperty('--door-open-duration', `${config.timing.doorOpenMs}ms`);
+  overlay.style.setProperty('--fade-out-duration', `${config.timing.fadeOutMs}ms`);
+  overlay.style.setProperty('--fade-in-duration', `${config.timing.fadeInMs}ms`);
   overlay.style.setProperty('--text-fade-duration', `${config.timing.textFadeMs}ms`);
   overlay.innerHTML = `
+    <div class="anarchist-scene-transition__fade"></div>
     <div class="anarchist-scene-transition__door anarchist-scene-transition__door--left">
       <div class="anarchist-scene-transition__door-rib"></div>
       <div class="anarchist-scene-transition__door-rib"></div>
@@ -47,6 +51,10 @@ export const removeExistingTransition = (id: string) => {
 
 export const getDoorElement = (overlay: HTMLElement) => {
   return overlay.querySelector<HTMLElement>('.anarchist-scene-transition__door--left');
+};
+
+export const getFadeElement = (overlay: HTMLElement) => {
+  return overlay.querySelector<HTMLElement>('.anarchist-scene-transition__fade');
 };
 
 export const getTextElement = (overlay: HTMLElement) => {

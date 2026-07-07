@@ -1,8 +1,15 @@
 import type { TextCrawlConfig } from './textCrawl';
 
+export type SceneTransitionType = 'industrial-doors' | 'fade';
+
+export type SceneTransitionAnimationConfig = {
+  type?: SceneTransitionType;
+};
+
 export type SceneTransitionConfig = {
   sceneName: string;
   id?: string;
+  transition?: SceneTransitionAnimationConfig;
   text?: TextCrawlConfig;
   timing?: SceneTransitionTiming;
   sounds?: SceneTransitionSounds;
@@ -20,6 +27,8 @@ export type SceneTransitionTiming = {
   briefingMs?: number;
   doorUnlockMs?: number;
   doorOpenMs?: number;
+  fadeOutMs?: number;
+  fadeInMs?: number;
   textFadeMs?: number;
   sceneReadyTimeoutMs?: number;
 };
@@ -35,8 +44,9 @@ export type SceneTransitionSounds = {
 };
 
 export type NormalizedSceneTransitionConfig = Required<
-  Omit<SceneTransitionSocketConfig, 'text' | 'timing' | 'sounds'>
+  Omit<SceneTransitionSocketConfig, 'text' | 'transition' | 'timing' | 'sounds'>
 > & {
+  transition: Required<SceneTransitionAnimationConfig>;
   text?: TextCrawlConfig;
   timing: Required<SceneTransitionTiming>;
   sounds: Required<SceneTransitionSounds>;
