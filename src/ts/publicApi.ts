@@ -168,6 +168,8 @@ type SceneTransitionPresetDefaults = {
 
 type FoundryActorLike = {
   documentName?: string;
+  id?: string;
+  uuid?: string;
   name?: string;
   img?: string;
   thumbnail?: string;
@@ -180,6 +182,8 @@ type FoundryActorLike = {
 
 type FoundryTokenLike = {
   documentName?: string;
+  id?: string;
+  uuid?: string;
   name?: string;
   actor?: FoundryActorLike | null;
   texture?: {
@@ -189,6 +193,9 @@ type FoundryTokenLike = {
 
 type FoundryActorCollectionLike = {
   contents?: FoundryActorLike[];
+  filter?: (predicate: (actor: FoundryActorLike) => boolean) => FoundryActorLike[];
+  getName?: (name: string) => FoundryActorLike | null | undefined;
+  [Symbol.iterator]?: () => IterableIterator<FoundryActorLike>;
 };
 
 type FoundryUuidGlobal = typeof globalThis & {
@@ -500,19 +507,88 @@ const resolveSenderActorByName = (name: string): ResolvedSenderActor => {
   }
 
   const actors = (game as ReadyGame).actors as unknown as FoundryActorCollectionLike | undefined;
-  if (!actors?.contents) {
+  if (!actors) {
     throw new Error('Unable to resolve briefing sender actor name: actor collection is not available.');
   }
 
-  const matches = actors.contents.filter(actor => actor.name === actorName);
-  if (matches.length === 0) {
-    throw new Error(`Unable to find briefing sender actor named "${actorName}".`);
+  const actorList = getActorCollectionContents(actors);
+  const matches = findActorNameMatches(actorList, actorName);
+  if (matches.length === 1) {
+    return resolvedSenderActorFromActor(matches[0]);
   }
   if (matches.length > 1) {
     throw new Error(`Briefing sender actor name "${actorName}" matches ${matches.length} actors. Use sender.actor.uuid or rename duplicate actors.`);
   }
 
-  return resolvedSenderActorFromActor(matches[0]);
+  const getNameMatch = actors.getName?.(actorName);
+  if (getNameMatch) {
+    return resolvedSenderActorFromActor(getNameMatch);
+  }
+
+  if (matches.length === 0) {
+    throw new Error(createActorNotFoundMessage(actorName, actorList));
+  }
+
+  throw new Error(`Unable to resolve briefing sender actor named "${actorName}".`);
+};
+
+const getActorCollectionContents = (actors: FoundryActorCollectionLike): FoundryActorLike[] => {
+  const actorList: FoundryActorLike[] = [];
+
+  if (Array.isArray(actors.contents)) {
+    actorList.push(...actors.contents);
+  }
+
+  if (typeof actors.filter === 'function') {
+    actorList.push(...actors.filter(() => true));
+  }
+
+  const iterator = actors[Symbol.iterator];
+  if (typeof iterator === 'function') {
+    actorList.push(...Array.from(iterator.call(actors)));
+  }
+
+  return deduplicateActors(actorList).filter(actor => !!actor.name);
+};
+
+const findActorNameMatches = (actors: FoundryActorLike[], actorName: string): FoundryActorLike[] => {
+  const exactMatches = actors.filter(actor => actor.name === actorName);
+  if (exactMatches.length) {
+    return exactMatches;
+  }
+
+  const normalizedActorName = normalizeActorName(actorName);
+  return actors.filter(actor => normalizeActorName(actor.name) === normalizedActorName);
+};
+
+const normalizeActorName = (name?: string) => {
+  return name?.trim().replace(/\s+/g, ' ').toLocaleLowerCase() ?? '';
+};
+
+const deduplicateActors = (actors: FoundryActorLike[]) => {
+  const seen = new Set<FoundryActorLike | string>();
+  return actors.filter(actor => {
+    const key = actor.uuid || actor.id || actor;
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+};
+
+const createActorNotFoundMessage = (actorName: string, actors: FoundryActorLike[]) => {
+  const examples = actors
+    .slice(0, 6)
+    .map(actor => actor.name)
+    .filter(Boolean)
+    .join(', ');
+  const suffix = examples
+    ? ` Available examples: ${examples}.`
+    : '';
+
+  return `Unable to find briefing sender actor named "${actorName}".${suffix}`;
 };
 
 const toResolvedSenderActor = (document: unknown): ResolvedSenderActor | undefined => {
