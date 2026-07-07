@@ -12,6 +12,7 @@ export const createTransitionOverlay = (config: NormalizedSceneTransitionConfig)
     'anarchist-scene-transition',
     `scene-transition--${config.transition.type}`,
     config.transition.type === 'industrial-doors' ? 'doors-open' : '',
+    config.transition.type === 'horizontal-shutter' ? 'shutters-open' : '',
     config.aboveUi ? 'above-ui' : '',
     config.blockInteractions ? 'block-interactions' : ''
   ].filter(Boolean).join(' ');
@@ -37,6 +38,14 @@ export const createTransitionOverlay = (config: NormalizedSceneTransitionConfig)
       <div class="anarchist-scene-transition__hazard"></div>
     </div>
     <div class="anarchist-scene-transition__seam" aria-hidden="true"></div>
+    <div class="anarchist-scene-transition__shutter anarchist-scene-transition__shutter--top">
+      <div class="anarchist-scene-transition__shutter-rib"></div>
+      <div class="anarchist-scene-transition__shutter-rib"></div>
+    </div>
+    <div class="anarchist-scene-transition__shutter anarchist-scene-transition__shutter--bottom">
+      <div class="anarchist-scene-transition__shutter-rib"></div>
+      <div class="anarchist-scene-transition__shutter-rib"></div>
+    </div>
     <div class="anarchist-scene-transition__text"></div>
   `;
 
@@ -55,6 +64,10 @@ export const getDoorElement = (overlay: HTMLElement) => {
 
 export const getFadeElement = (overlay: HTMLElement) => {
   return overlay.querySelector<HTMLElement>('.anarchist-scene-transition__fade');
+};
+
+export const getShutterElement = (overlay: HTMLElement) => {
+  return overlay.querySelector<HTMLElement>('.anarchist-scene-transition__shutter--top');
 };
 
 export const getTextElement = (overlay: HTMLElement) => {

@@ -18,6 +18,7 @@ import {
   createTransitionOverlay,
   getDoorElement,
   getFadeElement,
+  getShutterElement,
   getTextElement,
   prepareOverlayForAnimation,
   removeExistingTransition,
@@ -108,9 +109,13 @@ const handleSceneTransition = async (config: SceneTransitionSocketConfig, contro
   try {
     await prepareOverlayForAnimation(overlay);
 
-    const result = normalizedConfig.transition.type === 'fade'
-      ? await runFadeTransition(overlay, normalizedConfig, controllingUserId, controller, audio)
-      : await runIndustrialDoorTransition(overlay, normalizedConfig, controllingUserId, controller, audio);
+    const result = await runConfiguredTransition(
+      overlay,
+      normalizedConfig,
+      controllingUserId,
+      controller,
+      audio
+    );
     typingAudio = result.typingAudio;
     if (result.canceled) {
       return await finishLocalCancel(normalizedConfig, controllingUserId, overlay, audio, typingAudio);
@@ -129,6 +134,23 @@ const handleSceneTransition = async (config: SceneTransitionSocketConfig, contro
 type SceneTransitionRunResult = {
   canceled: boolean;
   typingAudio?: TransitionAudio;
+};
+
+const runConfiguredTransition = (
+  overlay: HTMLElement,
+  config: NormalizedSceneTransitionConfig,
+  controllingUserId: string,
+  controller: TransitionController,
+  audio: TransitionAudioController
+) => {
+  if (config.transition.type === 'fade') {
+    return runFadeTransition(overlay, config, controllingUserId, controller, audio);
+  }
+  if (config.transition.type === 'horizontal-shutter') {
+    return runHorizontalShutterTransition(overlay, config, controllingUserId, controller, audio);
+  }
+
+  return runIndustrialDoorTransition(overlay, config, controllingUserId, controller, audio);
 };
 
 const runIndustrialDoorTransition = async (
@@ -156,6 +178,42 @@ const runIndustrialDoorTransition = async (
   typingAudio = undefined;
 
   if (await openDoors(overlay, config, controller, audio)) {
+    return { canceled: true, typingAudio };
+  }
+
+  overlay.classList.add('text-hidden');
+  if (await waitForTransition(getTextElement(overlay), 'opacity', config.timing.textFadeMs, controller)) {
+    return { canceled: true, typingAudio };
+  }
+
+  return { canceled: false, typingAudio };
+};
+
+const runHorizontalShutterTransition = async (
+  overlay: HTMLElement,
+  config: NormalizedSceneTransitionConfig,
+  controllingUserId: string,
+  controller: TransitionController,
+  audio: TransitionAudioController
+): Promise<SceneTransitionRunResult> => {
+  let typingAudio: TransitionAudio | undefined;
+
+  if (await closeShutters(overlay, config, controller, audio)) {
+    return { canceled: true, typingAudio };
+  }
+
+  if (config.text) {
+    typingAudio = await renderBriefingText(overlay, config, controller, audio);
+  }
+
+  if (await activateTargetScene(config, controllingUserId, controller)) {
+    return { canceled: true, typingAudio };
+  }
+
+  await typingAudio?.stop();
+  typingAudio = undefined;
+
+  if (await openShutters(overlay, config, controller, audio)) {
     return { canceled: true, typingAudio };
   }
 
@@ -222,6 +280,26 @@ const closeDoors = async (
 
   overlay.classList.remove('doors-closing');
   overlay.classList.add('doors-sealed');
+  audio.play(config.sounds.doorSeal, config.sounds.doorVolume);
+  return false;
+};
+
+const closeShutters = async (
+  overlay: HTMLElement,
+  config: NormalizedSceneTransitionConfig,
+  controller: TransitionController,
+  audio: TransitionAudioController
+) => {
+  audio.play(config.sounds.doorClose, config.sounds.doorVolume);
+  overlay.classList.add('shutters-closing');
+  overlay.classList.add('shutters-closed');
+  overlay.classList.remove('shutters-open');
+
+  if (await waitForTransition(getShutterElement(overlay), 'transform', config.timing.doorCloseMs, controller)) {
+    return true;
+  }
+
+  overlay.classList.remove('shutters-closing');
   audio.play(config.sounds.doorSeal, config.sounds.doorVolume);
   return false;
 };
@@ -307,6 +385,25 @@ const openDoors = async (
   overlay.classList.remove('doors-closed');
 
   return waitForTransition(getDoorElement(overlay), 'transform', config.timing.doorOpenMs, controller);
+};
+
+const openShutters = async (
+  overlay: HTMLElement,
+  config: NormalizedSceneTransitionConfig,
+  controller: TransitionController,
+  audio: TransitionAudioController
+) => {
+  audio.play(config.sounds.doorUnlock, config.sounds.doorVolume);
+  if (await waitForDelay(config.timing.doorUnlockMs, controller)) {
+    return true;
+  }
+
+  audio.play(config.sounds.doorOpen, config.sounds.doorVolume);
+  overlay.classList.add('shutters-opening');
+  overlay.classList.add('shutters-open');
+  overlay.classList.remove('shutters-closed');
+
+  return waitForTransition(getShutterElement(overlay), 'transform', config.timing.doorOpenMs, controller);
 };
 
 const activateScene = async (sceneId: string) => {
@@ -411,11 +508,15 @@ const resolveSceneIdByName = (name: string) => {
 
 const resolveSceneTransitionType = (transitionType?: string): SceneTransitionType => {
   const resolvedTransitionType = transitionType ?? 'industrial-doors';
-  if (resolvedTransitionType === 'industrial-doors' || resolvedTransitionType === 'fade') {
+  if (
+    resolvedTransitionType === 'industrial-doors'
+    || resolvedTransitionType === 'fade'
+    || resolvedTransitionType === 'horizontal-shutter'
+  ) {
     return resolvedTransitionType;
   }
 
-  throw new Error(`Unknown scene transition type "${resolvedTransitionType}". Expected "industrial-doors" or "fade".`);
+  throw new Error(`Unknown scene transition type "${resolvedTransitionType}". Expected "industrial-doors", "horizontal-shutter", or "fade".`);
 };
 
 const notifyError = (error: unknown) => {

@@ -1,6 +1,12 @@
 import {moduleId} from "./constants";
 
-export type TextCrawlFrameType = 'none' | 'cinematic-bars' | 'horizontal-bar';
+export type TextCrawlFrameType =
+  | 'none'
+  | 'cinematic-bars'
+  | 'horizontal-bar'
+  | 'lower-third'
+  | 'terminal-panel'
+  | 'alert-banner';
 export type TextCrawlAlignment = 'start' | 'center' | 'end';
 
 export type TextCrawlFrameConfig = {
@@ -60,11 +66,18 @@ export const createTextCrawlHtml = async (config: TextCrawlConfig) => {
 
 export const resolveTextCrawlFrameType = (frameType?: string): TextCrawlFrameType => {
   const resolvedFrameType = frameType ?? 'cinematic-bars';
-  if (resolvedFrameType === 'none' || resolvedFrameType === 'cinematic-bars' || resolvedFrameType === 'horizontal-bar') {
+  if (
+    resolvedFrameType === 'none'
+    || resolvedFrameType === 'cinematic-bars'
+    || resolvedFrameType === 'horizontal-bar'
+    || resolvedFrameType === 'lower-third'
+    || resolvedFrameType === 'terminal-panel'
+    || resolvedFrameType === 'alert-banner'
+  ) {
     return resolvedFrameType;
   }
 
-  throw new Error(`Unknown text crawl frame type "${resolvedFrameType}". Expected "none", "cinematic-bars", or "horizontal-bar".`);
+  throw new Error(`Unknown text crawl frame type "${resolvedFrameType}". Expected "none", "cinematic-bars", "horizontal-bar", "lower-third", "terminal-panel", or "alert-banner".`);
 };
 
 export const validateTextCrawlConfig = (config: TextCrawlConfig) => {

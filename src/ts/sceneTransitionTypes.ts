@@ -1,6 +1,6 @@
 import type { TextCrawlConfig } from './textCrawl';
 
-export type SceneTransitionType = 'industrial-doors' | 'fade';
+export type SceneTransitionType = 'industrial-doors' | 'horizontal-shutter' | 'fade';
 
 export type SceneTransitionAnimationConfig = {
   type?: SceneTransitionType;

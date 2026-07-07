@@ -61,7 +61,7 @@ const textHtml = await anarchistOverlay.createTextCrawlHtml(textConfig);
 await anarchistOverlay.createOverlay(overlayConfig, textHtml);
 ```
 
-Text crawl frames can be set to `cinematic-bars`, `horizontal-bar`, or `none`.
+Text crawl frames can be set to `cinematic-bars`, `horizontal-bar`, `lower-third`, `terminal-panel`, `alert-banner`, or `none`.
 
 ### Horizontal Bar
 
@@ -99,6 +99,14 @@ await anarchistOverlay.createOverlay({
 ```
 
 Use `alignX` to position the text block, `textAlign` to align lines inside that block, and `maxWidth` to cap the block width. By default, the text block is only as wide as the longest rendered line.
+
+Other frame types use the same text config shape:
+
+```js
+frame: { type: 'lower-third' }
+frame: { type: 'terminal-panel' }
+frame: { type: 'alert-banner' }
+```
 
 Effect:
 
@@ -208,7 +216,7 @@ Renders HTML for a text crawl that can be passed into `createOverlay`.
 
 ### `playSceneTransition(config)`
 
-Plays a scene transition on every connected client. This must be called by a GM. Supported transition types are `industrial-doors` and `fade`. Press Escape during the transition to locally cancel the remaining animation on only your client.
+Plays a scene transition on every connected client. This must be called by a GM. Supported transition types are `industrial-doors`, `horizontal-shutter`, and `fade`. Press Escape during the transition to locally cancel the remaining animation on only your client.
 
 ```js
 const anarchistOverlay = game.modules.get('anarchist-overlay').api;
@@ -286,6 +294,37 @@ await anarchistOverlay.playSceneTransition({
 });
 ```
 
+For a top-and-bottom shutter transition:
+
+```js
+await anarchistOverlay.playSceneTransition({
+  sceneName: 'TARGET SCENE NAME',
+  transition: {
+    type: 'horizontal-shutter'
+  },
+  text: {
+    typingTime: 1.5,
+    delay: 0.5,
+    alignX: 'center',
+    textAlign: 'center',
+    maxWidth: '760px',
+    frame: {
+      type: 'terminal-panel'
+    },
+    lines: [
+      {
+        text: 'AIRLOCK CYCLE COMPLETE',
+        fontSize: '34px'
+      },
+      {
+        text: 'MISSION AREA READY',
+        fontSize: '24px'
+      }
+    ]
+  }
+});
+```
+
 The industrial door animation and bundled transition sounds are used by default. Pass `transition`, `timing`, or `sounds` only when you want to override the defaults.
 
 Bundled sound defaults live under `modules/anarchist-overlay/sounds/`: `industrial-door-close.ogg`, `industrial-door-seal.ogg`, `industrial-door-unlock.ogg`, `industrial-door-open.ogg`, and `mechanical-typing-click.ogg`.
@@ -307,7 +346,13 @@ export type OverlayConfig = {
   blockInteractions?: boolean; // should it block interactions with canvas and/or UI (defaults to true)
 }
 //Text config
-export type TextCrawlFrameType = 'none' | 'cinematic-bars' | 'horizontal-bar';
+export type TextCrawlFrameType =
+  | 'none'
+  | 'cinematic-bars'
+  | 'horizontal-bar'
+  | 'lower-third'
+  | 'terminal-panel'
+  | 'alert-banner';
 export type TextCrawlAlignment = 'start' | 'center' | 'end';
 
 export type TextCrawlConfig = {
@@ -326,7 +371,7 @@ export type TextCrawlConfig = {
 };
 
 // Scene transition config
-export type SceneTransitionType = 'industrial-doors' | 'fade';
+export type SceneTransitionType = 'industrial-doors' | 'horizontal-shutter' | 'fade';
 
 export type SceneTransitionConfig = {
   sceneName: string; // target scene name. Must match exactly and be unique.
