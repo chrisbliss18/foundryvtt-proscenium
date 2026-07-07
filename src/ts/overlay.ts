@@ -1,5 +1,23 @@
 import type { ModuleSocket } from './types';
 import {moduleId} from "./constants";
+import { createTransitionAudioController } from './sceneTransitionAudio';
+import {
+  resolveSceneTransitionSoundProfileType,
+  sceneTransitionSoundProfileDefaults
+} from './sceneTransitionSoundProfiles';
+import type {
+  SceneTransitionSoundProfileType,
+  SceneTransitionSounds,
+  TransitionAudio,
+  TransitionAudioController
+} from './sceneTransitionTypes';
+import {
+  createTextCrawlHtml,
+  getTextCrawlThemeType,
+  isTextCrawlTypewriterEffect,
+  type TextCrawlConfig
+} from './textCrawl';
+import type { PresentationThemeType } from './theme';
 
 export type OverlayConfig = {
   id?: string;
@@ -13,11 +31,45 @@ export type OverlayConfig = {
   blockInteractions?: boolean;
 }
 
+export type TextOverlayAudioConfig = {
+  profile?: SceneTransitionSoundProfileType;
+  volume?: {
+    typing?: number;
+  };
+  overrides?: {
+    typing?: string;
+  };
+};
+
 type NormalizedOverlayConfig = Required<Omit<OverlayConfig, 'id'>> & Pick<OverlayConfig, 'id'>;
+
+type RuntimeTextOverlayAudioConfig = {
+  text: TextCrawlConfig;
+  sounds: Required<SceneTransitionSounds>;
+};
+
+type OverlayAudioState = {
+  controller: {
+    canceled: boolean;
+  };
+  audio: TransitionAudioController;
+  typingAudio?: TransitionAudio;
+};
+
+const activeOverlayAudio = new Map<HTMLElement, OverlayAudioState>();
 
 export const createOverlay = (socket: ModuleSocket) => (config: OverlayConfig, html: string) => {
   assertGM('create overlays');
   return socket.executeForEveryone('createOverlay', config, html);
+}
+
+export const createTextOverlay = (socket: ModuleSocket) => (
+  config: OverlayConfig,
+  text: TextCrawlConfig,
+  audio?: TextOverlayAudioConfig
+) => {
+  assertGM('create text overlays');
+  return socket.executeForEveryone('createTextOverlay', config, text, audio);
 }
 
 export const closeOverlay = (socket: ModuleSocket) => (id: string) => {
@@ -35,16 +87,30 @@ export const closeAllOverlays = (socket: ModuleSocket) => () => {
 
 export const setupOverlaySocket = (socket: ModuleSocket) => {
   socket.register('createOverlay', handleOverlayCreation);
+  socket.register('createTextOverlay', handleTextOverlayCreation);
   socket.register('closeOverlay', handleOverlayClose);
   socket.register('closeAllOverlays', handleAllOverlayClose);
 }
 
 
 
-const handleOverlayCreation = async (config: OverlayConfig, html: string) => {
+const handleTextOverlayCreation = async (
+  config: OverlayConfig,
+  text: TextCrawlConfig,
+  audio?: TextOverlayAudioConfig
+) => {
+  const html = await createTextCrawlHtml(text);
+  return handleOverlayCreation(config, html, resolveTextOverlayAudio(text, audio));
+};
+
+const handleOverlayCreation = async (
+  config: OverlayConfig,
+  html: string,
+  audio?: RuntimeTextOverlayAudioConfig
+) => {
   const normalizedConfig = normalizeConfig(config);
   if(normalizedConfig.clearExisting) {
-    removeAllOverlays();
+    await removeAllOverlays();
   }
 
   const template = await renderTemplate(`modules/${moduleId}/templates/overlay.hbs`, normalizedConfig);
@@ -62,6 +128,7 @@ const handleOverlayCreation = async (config: OverlayConfig, html: string) => {
 
   overlay.innerHTML = html;
   document.body.append(overlay);
+  startOverlayAudio(overlay, audio);
 
   if(normalizedConfig.closeAllWindows) {
     await closeAllWindows();
@@ -74,13 +141,15 @@ const handleOverlayCreation = async (config: OverlayConfig, html: string) => {
   return overlay;
 };
 
-const handleOverlayClose = (id: string) => {
+const handleOverlayClose = async (id: string) => {
   const overlay = getOverlayById(id);
-  overlay?.remove();
+  if (overlay) {
+    await removeOverlay(overlay);
+  }
 }
 
-const handleAllOverlayClose = () => {
-  removeAllOverlays();
+const handleAllOverlayClose = async () => {
+  await removeAllOverlays();
 }
 
 const handleClosingOverlay = async (overlay: HTMLElement, config: NormalizedOverlayConfig) => {
@@ -89,7 +158,7 @@ const handleClosingOverlay = async (overlay: HTMLElement, config: NormalizedOver
     overlay.classList.add('fade-out');
     await sleeper(2000);
   }
-  overlay.remove();
+  await removeOverlay(overlay);
 };
 
 const normalizeConfig = (config: OverlayConfig): NormalizedOverlayConfig => {
@@ -119,9 +188,91 @@ const getOverlayById = (id: string) => {
     .find(overlay => overlay.dataset.prosceniumOverlayId === id);
 }
 
-const removeAllOverlays = () => {
-  document.querySelectorAll<HTMLElement>('.proscenium-overlay').forEach(overlay => overlay.remove());
+const removeAllOverlays = async () => {
+  await Promise.all(
+    Array.from(document.querySelectorAll<HTMLElement>('.proscenium-overlay'), removeOverlay)
+  );
 }
+
+const removeOverlay = async (overlay: HTMLElement) => {
+  await stopOverlayAudio(overlay);
+  overlay.remove();
+}
+
+const startOverlayAudio = (
+  overlay: HTMLElement,
+  audioConfig?: RuntimeTextOverlayAudioConfig
+) => {
+  if (!audioConfig) {
+    return;
+  }
+
+  const controller = { canceled: false };
+  const audio = createTransitionAudioController();
+  const typingAudio = audio.startTyping(audioConfig.text, audioConfig.sounds, controller);
+  if (!typingAudio) {
+    return;
+  }
+
+  activeOverlayAudio.set(overlay, {
+    controller,
+    audio,
+    typingAudio
+  });
+}
+
+const stopOverlayAudio = async (overlay: HTMLElement) => {
+  const state = activeOverlayAudio.get(overlay);
+  if (!state) {
+    return;
+  }
+
+  state.controller.canceled = true;
+  await state.typingAudio?.stop();
+  await state.audio.stopAll();
+  activeOverlayAudio.delete(overlay);
+}
+
+const resolveTextOverlayAudio = (
+  text: TextCrawlConfig,
+  audio?: TextOverlayAudioConfig
+): RuntimeTextOverlayAudioConfig | undefined => {
+  if (!isTextCrawlTypewriterEffect(text)) {
+    return undefined;
+  }
+
+  const profileType = resolveSceneTransitionSoundProfileType(
+    audio?.profile ?? getDefaultTextOverlaySoundProfile(text)
+  );
+  const defaults = sceneTransitionSoundProfileDefaults[profileType];
+  const sounds = {
+    ...defaults,
+    typingClick: audio?.overrides?.typing ?? defaults.typingClick,
+    typingVolume: audio?.volume?.typing ?? defaults.typingVolume
+  };
+  if (!sounds.typingClick || sounds.typingVolume <= 0) {
+    return undefined;
+  }
+
+  return {
+    text,
+    sounds
+  };
+}
+
+const getDefaultTextOverlaySoundProfile = (text: TextCrawlConfig): SceneTransitionSoundProfileType => {
+  return textOverlaySoundProfilesByTheme[getTextCrawlThemeType(text)];
+}
+
+const textOverlaySoundProfilesByTheme: Record<PresentationThemeType, SceneTransitionSoundProfileType> = {
+  industrial: 'bulkhead',
+  terminal: 'terminal',
+  scanline: 'scanline',
+  alert: 'alert',
+  hologram: 'hologram',
+  classified: 'classified',
+  clean: 'silent'
+};
 
 type ClosableApplication = {
   close: () => Promise<unknown> | unknown;

@@ -405,6 +405,39 @@ await proscenium.showTextOverlay({
 });
 ```
 
+Typewriter text overlays play local typing clicks by default. The click sound is chosen from the text style. Use `audio.profile: 'silent'` to disable it or override the typing file directly.
+
+```js
+await proscenium.showTextOverlay({
+  id: 'typing-audio-test',
+  durationMs: 9000,
+  behavior: {
+    clearExisting: true,
+    closeAllWindows: false,
+    blockInteractions: false
+  },
+  audio: {
+    profile: 'terminal',
+    volume: {
+      typing: 0.35
+    }
+  },
+  text: {
+    frame: 'panel',
+    style: 'terminal',
+    animation: {
+      type: 'typewriter',
+      durationMs: 1400,
+      lineDelayMs: 260
+    },
+    lines: [
+      { text: 'UPLINK ESTABLISHED', fontSize: '34px' },
+      { text: 'STANDBY FOR TRANSMISSION', fontSize: '24px' }
+    ]
+  }
+});
+```
+
 Comms message helper:
 
 ```js
@@ -602,6 +635,24 @@ type ShowTextOverlayConfig = {
     aboveUi?: boolean;
     blockInteractions?: boolean;
     fadeOnClose?: boolean;
+  };
+  audio?: {
+    profile?: 'bulkhead'
+      | 'classic-industrial'
+      | 'heavy-industrial'
+      | 'harsh-industrial'
+      | 'terminal'
+      | 'scanline'
+      | 'alert'
+      | 'hologram'
+      | 'classified'
+      | 'silent';
+    volume?: {
+      typing?: number;
+    };
+    overrides?: {
+      typing?: string;
+    };
   };
 };
 

@@ -1,6 +1,12 @@
 import type { ModuleSocket } from './types';
-import { createOverlay, type OverlayConfig } from './overlay';
+import {
+  createOverlay,
+  createTextOverlay,
+  type OverlayConfig,
+  type TextOverlayAudioConfig as OverlayTextAudioConfig
+} from './overlay';
 import { playSceneTransition } from './sceneTransition';
+import { resolveSceneTransitionSoundProfileType } from './sceneTransitionSoundProfiles';
 import type {
   SceneTransitionConfig,
   SceneTransitionSoundProfileType,
@@ -19,7 +25,7 @@ import type {
   TextCrawlSenderPosition,
   TextCrawlSenderSize
 } from './textCrawl';
-import { createTextCrawlHtml } from './textCrawl';
+import { validateTextCrawlConfig } from './textCrawl';
 import { resolvePresentationThemeType, type PresentationThemeType } from './theme';
 
 export type PresentationStyleType = PresentationThemeType;
@@ -106,6 +112,16 @@ export type SceneTransitionAudioConfig = {
   overrides?: SceneTransitionAudioOverrideConfig;
 };
 
+export type TextOverlayAudioConfig = {
+  profile?: SceneTransitionSoundProfileType;
+  volume?: {
+    typing?: number;
+  };
+  overrides?: {
+    typing?: string;
+  };
+};
+
 export type SceneTransitionTimelineConfig = {
   closeMs?: number;
   briefingMs?: number;
@@ -153,6 +169,7 @@ export type ShowTextOverlayConfig = {
   placement?: OverlayPlacementConfig;
   durationMs?: number;
   behavior?: OverlayBehaviorConfig;
+  audio?: TextOverlayAudioConfig;
 };
 
 export type ShowHtmlOverlayConfig = {
@@ -270,22 +287,20 @@ export const transitionToScene = (socket: ModuleSocket) => {
 };
 
 export const showTextOverlay = (socket: ModuleSocket) => {
-  const showHtml = showHtmlOverlay(socket);
+  const showText = createTextOverlay(socket);
 
   return async (config: ShowTextOverlayConfig) => {
     if (!config.text) {
       throw new Error('Text overlay config.text is required.');
     }
 
-    const textConfig = await preparePublicConfig(() => toTextCrawlConfig(config.text));
-    const html = await preparePublicConfig(() => createTextCrawlHtml(textConfig));
-    return showHtml({
-      id: config.id,
-      html,
-      placement: config.placement,
-      durationMs: config.durationMs,
-      behavior: config.behavior
+    const textConfig = await preparePublicConfig(async () => {
+      const resolvedTextConfig = await toTextCrawlConfig(config.text);
+      validateTextCrawlConfig(resolvedTextConfig);
+      return resolvedTextConfig;
     });
+    const audioConfig = await preparePublicConfig(() => toTextOverlayAudioConfig(config.audio));
+    return showText(toOverlayConfig(config), textConfig, audioConfig);
   };
 };
 
@@ -396,7 +411,17 @@ const toSceneTransitionSounds = (config?: SceneTransitionAudioConfig): SceneTran
   };
 };
 
-const toOverlayConfig = (config: ShowHtmlOverlayConfig): OverlayConfig => {
+const toTextOverlayAudioConfig = (config?: TextOverlayAudioConfig): OverlayTextAudioConfig | undefined => {
+  validateTextOverlayAudioConfig(config);
+  return config;
+};
+
+type PublicOverlayConfigFields = Pick<
+  ShowHtmlOverlayConfig,
+  'id' | 'placement' | 'durationMs' | 'behavior'
+>;
+
+const toOverlayConfig = (config: PublicOverlayConfigFields): OverlayConfig => {
   return {
     id: config.id,
     positionX: config.placement?.x,
@@ -432,7 +457,27 @@ const validateHtmlOverlayConfig = (config: ShowHtmlOverlayConfig) => {
   }
 };
 
-const preparePublicConfig = async <T>(prepare: () => Promise<T>): Promise<T> => {
+const validateTextOverlayAudioConfig = (config?: TextOverlayAudioConfig) => {
+  if (!config) {
+    return;
+  }
+
+  if (config.profile) {
+    resolveSceneTransitionSoundProfileType(config.profile);
+  }
+
+  const typingVolume = config.volume?.typing;
+  if (typingVolume !== undefined && (!Number.isFinite(typingVolume) || typingVolume < 0 || typingVolume > 1)) {
+    throw new Error('Text overlay audio.volume.typing must be a number from 0 to 1.');
+  }
+
+  const typingOverride = config.overrides?.typing;
+  if (typingOverride !== undefined && typeof typingOverride !== 'string') {
+    throw new Error('Text overlay audio.overrides.typing must be a string path or an empty string.');
+  }
+};
+
+const preparePublicConfig = async <T>(prepare: () => T | Promise<T>): Promise<T> => {
   try {
     return await prepare();
   } catch (error) {

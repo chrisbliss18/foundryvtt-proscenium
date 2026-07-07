@@ -1,10 +1,11 @@
 import { isTextCrawlTypewriterEffect, type TextCrawlConfig } from './textCrawl';
 import type {
+  AudioCancellationController,
   AudioHelperGlobal,
+  GameAudioGlobal,
   SceneTransitionSounds,
   TransitionAudio,
   TransitionAudioController,
-  TransitionController,
   TransitionSound
 } from './sceneTransitionTypes';
 
@@ -15,7 +16,7 @@ export const createTransitionAudioController = (): TransitionAudioController => 
     play: (src: string, volume: number) => {
       void playTrackedSound(src, volume, activeSounds);
     },
-    startTyping: (text: TextCrawlConfig, sounds: Required<SceneTransitionSounds>, controller: TransitionController) => {
+    startTyping: (text: TextCrawlConfig, sounds: Required<SceneTransitionSounds>, controller: AudioCancellationController) => {
       if (!sounds.typingClick || !isTextCrawlTypewriterEffect(text)) {
         return undefined;
       }
@@ -46,33 +47,67 @@ const playTrackedSound = async (
   return sound;
 };
 
-const playSound = async (src: string, volume: number) => {
+const playSound = async (src: string, volume: number): Promise<TransitionSound | undefined> => {
   if (!src) {
     return undefined;
   }
 
   try {
-    const audioHelper = (globalThis as typeof globalThis & { AudioHelper?: AudioHelperGlobal }).AudioHelper;
-    if (audioHelper) {
+    const audioHelper = getAudioHelper();
+    if (audioHelper?.play) {
       return await audioHelper.play({ src, volume, loop: false }, false);
     }
 
-    const fallbackSound = (game as ReadyGame).audio.create({ src });
-    fallbackSound.volume = volume;
-    await fallbackSound.load();
-    await fallbackSound.play({ loop: false });
-    return fallbackSound;
+    const gameAudio = (game as ReadyGame & { audio?: GameAudioGlobal }).audio;
+    if (gameAudio?.play) {
+      return await gameAudio.play(src, { volume, loop: false });
+    }
+    if (gameAudio?.create) {
+      const fallbackSound = gameAudio.create({ src });
+      fallbackSound.volume = volume;
+      await fallbackSound.load?.();
+      await fallbackSound.play?.({ loop: false });
+      return fallbackSound;
+    }
+
+    return await playNativeAudio(src, volume);
   } catch (error) {
     console.warn(`Proscenium | Unable to play sound "${src}".`, error);
     return undefined;
   }
 };
 
+const getAudioHelper = () => {
+  const globals = globalThis as typeof globalThis & {
+    AudioHelper?: AudioHelperGlobal;
+    foundry?: {
+      audio?: {
+        AudioHelper?: AudioHelperGlobal;
+      };
+    };
+  };
+
+  return globals.AudioHelper ?? globals.foundry?.audio?.AudioHelper;
+};
+
+const playNativeAudio = async (src: string, volume: number): Promise<TransitionSound> => {
+  const audio = new Audio(src);
+  audio.volume = volume;
+  await audio.play();
+
+  return {
+    stop: () => {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  };
+};
+
 const scheduleTypingClicks = (
   text: TextCrawlConfig,
   src: string,
   volume: number,
-  controller: TransitionController,
+  controller: AudioCancellationController,
   activeSounds: Set<TransitionSound>
 ): TransitionAudio => {
   const timers: number[] = [];

@@ -85,12 +85,16 @@ export type TransitionAudio = {
   stop: () => Promise<unknown> | unknown;
 };
 
+export type AudioCancellationController = {
+  canceled: boolean;
+};
+
 export type TransitionAudioController = {
   play: (src: string, volume: number) => void;
   startTyping: (
     text: TextCrawlConfig,
     sounds: Required<SceneTransitionSounds>,
-    controller: TransitionController
+    controller: AudioCancellationController
   ) => TransitionAudio | undefined;
   stopAll: () => Promise<void>;
 };
@@ -106,4 +110,16 @@ export type AudioHelperGlobal = {
     data: { src: string; volume: number; loop: boolean },
     socketOptions?: boolean | null
   ) => Promise<TransitionSound>;
+};
+
+export type GameAudioGlobal = {
+  play?: (
+    src: string,
+    options?: { volume?: number; loop?: boolean }
+  ) => Promise<TransitionSound>;
+  create?: (data: { src: string }) => TransitionSound & {
+    volume?: number;
+    load?: () => Promise<unknown>;
+    play?: (options?: { loop?: boolean }) => Promise<unknown> | unknown;
+  };
 };
