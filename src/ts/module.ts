@@ -6,10 +6,10 @@ import '../styles/scene-transition.scss';
 
 import type { AnarchistOverlayApi, AnarchistOverlayModule } from './types';
 import { setupSocket } from './socket';
-import { closeAllOverlays, closeOverlay, createOverlay, setupOverlaySocket } from './overlay';
-import { playSceneTransition, setupSceneTransitionSocket } from './sceneTransition';
+import { closeAllOverlays, closeOverlay, setupOverlaySocket } from './overlay';
+import { setupSceneTransitionSocket } from './sceneTransition';
 import { moduleId } from "./constants";
-import {createTextCrawlHtml} from "./textCrawl";
+import { showHtmlOverlay, showTextOverlay, transitionToScene } from './publicApi';
 
 Hooks.once('socketlib.ready', () => {
   const module = (game as ReadyGame).modules.get(moduleId) as unknown as AnarchistOverlayModule | undefined;
@@ -22,17 +22,17 @@ Hooks.once('socketlib.ready', () => {
   setupSceneTransitionSocket(socket);
 
   const api: AnarchistOverlayApi = {
-    createOverlay: createOverlay(socket),
-    createTextCrawlHtml,
+    transitionToScene: transitionToScene(socket),
+    showTextOverlay: showTextOverlay(socket),
+    showHtmlOverlay: showHtmlOverlay(socket),
     closeAllOverlays: closeAllOverlays(socket),
-    closeOverlay: closeOverlay(socket),
-    playSceneTransition: playSceneTransition(socket)
+    closeOverlay: closeOverlay(socket)
   };
 
   module.api = api;
-  module.createOverlay = api.createOverlay;
-  module.createTextCrawlHtml = api.createTextCrawlHtml;
+  module.transitionToScene = api.transitionToScene;
+  module.showTextOverlay = api.showTextOverlay;
+  module.showHtmlOverlay = api.showHtmlOverlay;
   module.closeAllOverlays = api.closeAllOverlays;
   module.closeOverlay = api.closeOverlay;
-  module.playSceneTransition = api.playSceneTransition;
 });

@@ -1,22 +1,25 @@
-import type { closeAllOverlays, closeOverlay, createOverlay } from './overlay';
-import type { playSceneTransition } from './sceneTransition';
-import type { createTextCrawlHtml } from "./textCrawl";
+import type { closeAllOverlays, closeOverlay } from './overlay';
+import type {
+  showHtmlOverlay,
+  showTextOverlay,
+  transitionToScene
+} from './publicApi';
 
 export type AnarchistOverlayApi = {
-  createOverlay: ReturnType<typeof createOverlay>;
-  createTextCrawlHtml: typeof createTextCrawlHtml;
+  transitionToScene: ReturnType<typeof transitionToScene>;
+  showTextOverlay: ReturnType<typeof showTextOverlay>;
+  showHtmlOverlay: ReturnType<typeof showHtmlOverlay>;
   closeAllOverlays: ReturnType<typeof closeAllOverlays>;
   closeOverlay: ReturnType<typeof closeOverlay>;
-  playSceneTransition: ReturnType<typeof playSceneTransition>;
 };
 
 export interface AnarchistOverlayModule {
   api: AnarchistOverlayApi;
-  createOverlay: AnarchistOverlayApi['createOverlay'];
-  createTextCrawlHtml: AnarchistOverlayApi['createTextCrawlHtml'];
+  transitionToScene: AnarchistOverlayApi['transitionToScene'];
+  showTextOverlay: AnarchistOverlayApi['showTextOverlay'];
+  showHtmlOverlay: AnarchistOverlayApi['showHtmlOverlay'];
   closeAllOverlays: AnarchistOverlayApi['closeAllOverlays'];
   closeOverlay: AnarchistOverlayApi['closeOverlay'];
-  playSceneTransition: AnarchistOverlayApi['playSceneTransition'];
 }
 
 

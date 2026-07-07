@@ -1,6 +1,6 @@
 # Anarchist Overlay
 
-Module for the Foundry VTT, allowing to render arbitrary HTML in a configurable overlay above the canvas for all users simultaneously. It also includes a method for getting HTML for mission briefing-like text crawl.
+Foundry VTT module for cinematic scene transitions, styled text overlays, and GM-controlled HTML overlays shown to all connected clients.
 
 ## Compatibility
 
@@ -9,807 +9,466 @@ Anarchist Overlay is compatible with Foundry VTT v13 and v14. It requires the [s
 ## Installation
 
 Install using a manifest link:
-```
+
+```txt
 https://github.com/reynevan24/anarchist-overlay/releases/latest/download/module.json
 ```
 
-## Example Usage
+## API Model
 
-Macro:
-```js
-const overlayConfig = {
-  id: 'mission-briefing',
-  positionX: 'start',
-  positionY: 'center',
-  clearExisting: true
-};
-
-const textConfig = {
-  offsetX: '20px',
-  offsetY: '0',
-  typingTime: 2,
-  delay: 1,
-  frame: {
-    type: 'cinematic-bars'
-  },
-  lines: [{
-      text: 'MISSION 1: BUG HUNT',
-      fontSize: '52px',
-    },
-    {
-      text: 'COMBAT: TRAPDOOR SPIDER',
-      fontSize: '38px',
-    },
-    {
-      text: 'OBJECTIVE: SEARCH AND DESTROY',
-      fontSize: '34px'
-    },
-    {
-      text: 'EARLY SPRING, 5014U | HERCYNIA',
-      fontSize: '20px'
-    },
-    {
-      text: 'FOREST NEAR EVERGREEN | WEATHER: EXTREME HUMIDITY',
-      fontSize: '20px'
-    },
-  ]
-};
-
-const anarchistOverlay = game.modules.get('anarchist-overlay').api;
-const textHtml = await anarchistOverlay.createTextCrawlHtml(textConfig);
-
-await anarchistOverlay.createOverlay(overlayConfig, textHtml);
-```
-
-Text crawl frames can be set to `cinematic-bars`, `horizontal-bar`, `lower-third`, `panel`, `mission-card`, `chyron`, or `none`.
-
-Themes can be set to `industrial`, `terminal`, `scanline`, `alert`, `hologram`, `classified`, or `clean`. Frames describe layout; themes describe the visual treatment. The default text theme depends on the frame: `panel` and `chyron` default to `terminal`, `none` and `cinematic-bars` default to `clean`, and the other frames default to `industrial`.
-
-Text crawl effects can be set to `typewriter`, `scroll`, `stagger-fade`, `decode`, `wipe`, or `none`. Frames default to `typewriter`, except `chyron`, which defaults to `scroll`. The `scroll` effect is supported by `chyron` and `horizontal-bar`.
-
-### Horizontal Bar
+All public methods are available from:
 
 ```js
-const anarchistOverlay = game.modules.get('anarchist-overlay').api;
-
-const textHtml = await anarchistOverlay.createTextCrawlHtml({
-  typingTime: 1.2,
-  delay: 0.3,
-  alignX: 'center',
-  textAlign: 'center',
-  maxWidth: '720px',
-  frame: {
-    type: 'horizontal-bar'
-  },
-  theme: {
-    type: 'industrial'
-  },
-  lines: [
-    {
-      text: 'SITREP UPDATED',
-      fontSize: '34px'
-    },
-    {
-      text: 'HOSTILE CONTACTS DETECTED',
-      fontSize: '24px'
-    }
-  ]
-});
-
-await anarchistOverlay.createOverlay({
-  id: 'sitrep-update',
-  positionX: 'center',
-  positionY: 'center',
-  closeTime: 8,
-  clearExisting: true
-}, textHtml);
+const ao = game.modules.get('anarchist-overlay').api;
 ```
 
-Use `alignX` to position the text block, `textAlign` to align lines inside that block, and `maxWidth` to cap the block width. By default, the text block is only as wide as the longest rendered line.
-
-### Chyron
+The public API is organized around three actions:
 
 ```js
-const anarchistOverlay = game.modules.get('anarchist-overlay').api;
-
-const textHtml = await anarchistOverlay.createTextCrawlHtml({
-  frame: {
-    type: 'chyron'
-  },
-  effect: {
-    type: 'scroll',
-    duration: 18,
-    loop: true,
-    separator: ' // '
-  },
-  lines: [
-    {
-      text: 'MISSION UPDATE: HOSTILE CONTACTS DETECTED',
-      fontSize: '24px'
-    },
-    {
-      text: 'OBJECTIVE: SECURE THE LANDING ZONE',
-      fontSize: '24px'
-    },
-    {
-      text: 'WEATHER: EXTREME HUMIDITY',
-      fontSize: '24px'
-    }
-  ]
-});
-
-await anarchistOverlay.createOverlay({
-  id: 'mission-chyron',
-  positionX: 'center',
-  positionY: 'center',
-  closeTime: 18,
-  clearExisting: true
-}, textHtml);
+ao.transitionToScene(config)
+ao.showTextOverlay(config)
+ao.showHtmlOverlay(config)
 ```
 
-Other frame types use the same text config shape:
+Use `transitionToScene` for scene activation with a cinematic reveal, `showTextOverlay` for styled text without a scene change, and `showHtmlOverlay` only when you intentionally need raw GM-provided HTML.
 
-```js
-frame: { type: 'lower-third' }
-frame: { type: 'panel' }
-frame: { type: 'chyron' }
-frame: { type: 'mission-card' }
-```
-
-Themes can be mixed with compatible frames:
-
-```js
-frame: { type: 'panel' }, theme: { type: 'terminal' }
-frame: { type: 'panel' }, theme: { type: 'scanline' }
-frame: { type: 'horizontal-bar' }, theme: { type: 'alert' }
-frame: { type: 'mission-card' }, theme: { type: 'scanline' }
-frame: { type: 'lower-third' }, theme: { type: 'hologram' }
-frame: { type: 'mission-card' }, theme: { type: 'classified' }
-```
-
-### Additional Effects
-
-`stagger-fade`, `decode`, and `wipe` use `effect.duration` for each line and `effect.lineDelay` for the pause between lines.
-
-```js
-const textHtml = await anarchistOverlay.createTextCrawlHtml({
-  alignX: 'center',
-  textAlign: 'start',
-  maxWidth: '760px',
-  frame: {
-    type: 'mission-card'
-  },
-  theme: {
-    type: 'industrial'
-  },
-  effect: {
-    type: 'stagger-fade',
-    duration: 0.75,
-    lineDelay: 0.28
-  },
-  lines: [
-    { text: 'MISSION 1: BUG HUNT', fontSize: '42px' },
-    { text: 'COMBAT: TRAPDOOR SPIDER', fontSize: '28px' },
-    { text: 'OBJECTIVE: SEARCH AND DESTROY', fontSize: '24px' }
-  ]
-});
-```
-
-```js
-const textHtml = await anarchistOverlay.createTextCrawlHtml({
-  maxWidth: '820px',
-  frame: {
-    type: 'panel'
-  },
-  theme: {
-    type: 'scanline'
-  },
-  effect: {
-    type: 'decode',
-    duration: 1.15,
-    lineDelay: 0.22
-  },
-  lines: [
-    { text: '>//DROP ZONE TELEMETRY ACQUIRED', fontSize: '30px' },
-    { text: '>//HOSTILE SIGNATURES DETECTED', fontSize: '24px' }
-  ]
-});
-```
-
-```js
-const textHtml = await anarchistOverlay.createTextCrawlHtml({
-  alignX: 'center',
-  textAlign: 'center',
-  frame: {
-    type: 'horizontal-bar'
-  },
-  theme: {
-    type: 'alert'
-  },
-  effect: {
-    type: 'wipe',
-    duration: 0.85,
-    lineDelay: 0.18
-  },
-  lines: [
-    { text: 'ARRIVAL VECTOR CONFIRMED', fontSize: '34px' },
-    { text: 'DROP ZONE READY', fontSize: '24px' }
-  ]
-});
-```
-
-Effect:
-
-![Animation](https://user-images.githubusercontent.com/10486394/233835406-5a02eaf6-3374-491b-97ba-813512fab075.gif)
-
-### Glitch Effect:
-
-```js
-const overlayConfig = {
-    positionX: 'center',
-    positionY: 'center',
-    closeTime: 18,
-    aboveUi: false,
-    blockInteractions: false
-}
-
-const textConfig = {
-    offsetX: '20px',
-    offsetY: '0',
-    typingTime: 1.5,
-    delay: 0.5,
-    frame: {
-      type: 'none'
-    },
-    glitchEffect: { time: 0.5 },
-    lines: [
-      {
-        text: '>//CC: FORCOMM X-X DESG:: “BROADCAST”',
-        fontSize: '30px',
-      },
-      {
-        text: '>//if:::HOSTILE=TRUE then:::',
-        fontSize: '30px',
-      },
-      {
-        text: '>//WIPE THEM ALL AWAY',
-        fontSize: '30px'
-      },
-      {
-        text: '>//EVERY SINGLE ONE OF THEM',
-        fontSize: '30px'
-      },
-      {
-        text: '>//KILL THEM WITH PREJUDICE LEAVE NO GROUND UNBURNED',
-        fontSize: '30px'
-      },
-      {
-        text: '>//if:::CINDERS ASH DARK SMOKE=TRUE then:::',
-        fontSize: '30px'
-      },
-      {
-        text: '>//AWAIT FURTHER TASKING',
-        fontSize: '30px'
-      },
-    ]
-  }
-
-
-const anarchistOverlay = game.modules.get('anarchist-overlay').api;
-const textHtml = await anarchistOverlay.createTextCrawlHtml(textConfig);
-
-await anarchistOverlay.createOverlay(overlayConfig, textHtml);
-```
-![Animation-4](https://github.com/reynevan24/anarchist-overlay/assets/10486394/7a0c55be-2a1b-4bb2-b987-df6e6fc78b7d)
-
-## API
-
-All methods are available from `game.modules.get('anarchist-overlay').api`.
-
-```js
-const anarchistOverlay = game.modules.get('anarchist-overlay').api;
-```
-
-### `createOverlay(config, html)`
-
-Creates an overlay on every connected client. This must be called by a GM.
-
-```js
-await anarchistOverlay.createOverlay({
-  id: 'warning',
-  positionX: 'center',
-  positionY: 'center',
-  closeTime: 0,
-  clearExisting: true
-}, '<h1>Evacuate immediately</h1>');
-```
-
-### `closeOverlay(id)`
-
-Closes one overlay by id on every connected client. This must be called by a GM.
-
-```js
-await anarchistOverlay.closeOverlay('warning');
-```
-
-### `closeAllOverlays()`
-
-Closes every Anarchist Overlay overlay on every connected client. This must be called by a GM.
-
-```js
-await anarchistOverlay.closeAllOverlays();
-```
-
-### `createTextCrawlHtml(config)`
-
-Renders HTML for a text crawl that can be passed into `createOverlay`.
-
-### `playSceneTransition(config)`
-
-Plays a scene transition on every connected client. This must be called by a GM. Supported transition types are `industrial-doors`, `horizontal-shutter`, and `fade`. Press Escape during the transition to locally cancel the remaining animation on only your client.
-
-```js
-const anarchistOverlay = game.modules.get('anarchist-overlay').api;
-
-await anarchistOverlay.playSceneTransition({
-  sceneName: 'TARGET SCENE NAME',
-  theme: {
-    type: 'industrial'
-  },
-  transition: {
-    type: 'industrial-doors'
-  },
-  text: {
-    offsetX: '20px',
-    offsetY: '0',
-    typingTime: 2,
-    delay: 1,
-    frame: {
-      type: 'none'
-    },
-    lines: [
-      {
-        text: 'MISSION 1: BUG HUNT',
-        fontSize: '52px'
-      },
-      {
-        text: 'COMBAT: TRAPDOOR SPIDER',
-        fontSize: '38px'
-      },
-      {
-        text: 'OBJECTIVE: SEARCH AND DESTROY',
-        fontSize: '34px'
-      }
-    ]
-  },
-  timing: {
-    doorCloseMs: 2600,
-    doorUnlockMs: 1500,
-    doorOpenMs: 4100,
-    textFadeMs: 900
-  }
-});
-```
-
-For a simple fade transition:
-
-```js
-await anarchistOverlay.playSceneTransition({
-  sceneName: 'TARGET SCENE NAME',
-  theme: {
-    type: 'clean'
-  },
-  transition: {
-    type: 'fade'
-  },
-  text: {
-    typingTime: 1.5,
-    delay: 0.5,
-    alignX: 'center',
-    textAlign: 'center',
-    maxWidth: '760px',
-    frame: {
-      type: 'horizontal-bar'
-    },
-    lines: [
-      {
-        text: 'ARRIVAL VECTOR CONFIRMED',
-        fontSize: '34px'
-      },
-      {
-        text: 'DROP ZONE: SECURE FOR DEPLOYMENT',
-        fontSize: '24px'
-      }
-    ]
-  },
-  timing: {
-    fadeOutMs: 1200,
-    fadeInMs: 1200,
-    textFadeMs: 700
-  }
-});
-```
-
-For a top-and-bottom shutter transition:
-
-```js
-await anarchistOverlay.playSceneTransition({
-  sceneName: 'TARGET SCENE NAME',
-  theme: {
-    type: 'terminal'
-  },
-  transition: {
-    type: 'horizontal-shutter',
-    theme: {
-      type: 'scanline'
-    }
-  },
-  text: {
-    typingTime: 1.5,
-    delay: 0.5,
-    alignX: 'center',
-    textAlign: 'center',
-    maxWidth: '760px',
-    frame: {
-      type: 'panel'
-    },
-    theme: {
-      type: 'terminal'
-    },
-    lines: [
-      {
-        text: 'AIRLOCK CYCLE COMPLETE',
-        fontSize: '34px'
-      },
-      {
-        text: 'MISSION AREA READY',
-        fontSize: '24px'
-      }
-    ]
-  }
-});
-```
-
-The industrial door animation is used by default. Pass `theme`, `transition`, `soundProfile`, `timing`, or `sounds` only when you want to override the defaults. A top-level `theme` is inherited by transition text unless `text.theme` overrides it; `transition.theme` can separately theme the transition shell.
-
-Scene transitions use bundled sound profiles that are independent of visual themes. The default sound profile is `bulkhead`. Use `soundProfile: { type: 'silent' }` for a silent transition, or pass `sounds` to override any individual sound path or volume.
-
-The `sceneName` value must match exactly one scene. If no scene matches, or if multiple scenes share the same name, the GM receives an error notification and the transition is not started.
-
-### Sound Profiles
-
-Bundled sound profiles can be selected independently from the visual theme. Sound profiles do not change animation timing; the default timings are tuned for `bulkhead`.
-
-CC0 bulkhead:
+## Scene Transitions
 
 ```js
 const ao = game.modules.get('anarchist-overlay').api;
 
-await ao.playSceneTransition({
-  sceneName: 'TARGET SCENE NAME',
+await ao.transitionToScene({
+  scene: {
+    name: 'Sandbox'
+  },
+  preset: 'bulkhead',
   transition: {
-    type: 'industrial-doors',
-    theme: { type: 'industrial' }
+    type: 'split-door',
+    style: 'industrial'
   },
-  soundProfile: {
-    type: 'bulkhead'
-  },
-  text: {
-    alignX: 'center',
-    textAlign: 'center',
-    maxWidth: '820px',
-    frame: { type: 'mission-card' },
-    theme: { type: 'industrial' },
-    effect: { type: 'decode', duration: 1.1, lineDelay: 0.22 },
+  briefing: {
+    frame: 'mission-card',
+    style: 'hologram',
+    layout: {
+      align: 'center',
+      textAlign: 'center',
+      maxWidth: '820px'
+    },
+    animation: {
+      type: 'decode',
+      durationMs: 1100,
+      lineDelayMs: 220
+    },
     lines: [
-      { text: 'BULKHEAD SOUND TEST', fontSize: '44px' },
-      { text: 'AIRLOCK CYCLE IN PROGRESS', fontSize: '26px' }
+      { text: 'MISSION 1: BUG HUNT', fontSize: '52px' },
+      { text: 'COMBAT: TRAPDOOR SPIDER', fontSize: '38px' },
+      { text: 'OBJECTIVE: SEARCH AND DESTROY', fontSize: '34px' }
     ]
-  },
-  timing: {
-    doorCloseMs: 2600,
-    doorUnlockMs: 1500,
-    doorOpenMs: 4100,
-    textFadeMs: 900
   }
 });
 ```
 
-The bulkhead bank is derived from CC0 Freesound sources:
+The scene name must match exactly one scene. If no scene matches, or if multiple scenes share the same name, the GM receives an error notification and the transition is not started.
 
-- `industrial-bulkhead-close.ogg`: [lezaarth, "Electric Door"](https://freesound.org/people/lezaarth/sounds/316092/), reversed from about 1.0s to 3.6s for movement without the terminal impact.
-- `industrial-bulkhead-seal.ogg`: [SecureSubset, "Large Metal Bunker Doors, Opening and Closing, Resonances"](https://freesound.org/people/SecureSubset/sounds/845666/), cut from about 9.5s to 11.5s so the impact starts immediately when the seal cue plays.
+Press Escape during a scene transition to skip the remaining animation locally on that client. Other clients continue normally.
+
+## Core Concepts
+
+- `preset`: convenience defaults for transition motion, timeline, and audio.
+- `transition`: visual scene reveal animation.
+- `style`: visual treatment. Styles do not choose sounds.
+- `briefing`: text/content shown during the transition or overlay.
+- `audio.profile`: bundled sound bank.
+- `audio.overrides`: manual replacement for individual sound files.
+- `timeline`: transition timing in milliseconds.
+- `behavior`: client/UI behavior such as interaction blocking.
+
+## Presets
+
+Available presets:
+
+```js
+'bulkhead'
+'quick-alert'
+'silent-fade'
+```
+
+`bulkhead` is the default. It uses the split-door animation, industrial styling, the CC0 bulkhead sound profile, and timings tuned to that sound bank.
+
+Presets are only defaults. Override any part explicitly:
+
+```js
+await ao.transitionToScene({
+  scene: { name: 'Sandbox' },
+  preset: 'bulkhead',
+  transition: {
+    type: 'horizontal-shutter',
+    style: 'classified'
+  },
+  audio: {
+    profile: 'silent'
+  },
+  briefing: {
+    frame: 'panel',
+    style: 'classified',
+    lines: [
+      { text: 'RESTRICTED AREA ENTERED', fontSize: '38px' }
+    ]
+  }
+});
+```
+
+## Transition Types
+
+Available transition types:
+
+```js
+'split-door'
+'horizontal-shutter'
+'fade'
+```
+
+Available styles:
+
+```js
+'industrial'
+'terminal'
+'scanline'
+'alert'
+'hologram'
+'classified'
+'clean'
+```
+
+## Sound Profiles
+
+Available audio profiles:
+
+```js
+'bulkhead'
+'classic-industrial'
+'heavy-industrial'
+'harsh-industrial'
+'terminal'
+'scanline'
+'alert'
+'hologram'
+'classified'
+'silent'
+```
+
+Use `audio.profile` to select a bundled bank:
+
+```js
+await ao.transitionToScene({
+  scene: { name: 'Sandbox' },
+  transition: {
+    type: 'split-door',
+    style: 'industrial'
+  },
+  audio: {
+    profile: 'bulkhead'
+  },
+  briefing: {
+    frame: 'mission-card',
+    lines: [
+      { text: 'BULKHEAD SOUND TEST', fontSize: '44px' }
+    ]
+  }
+});
+```
+
+Use `audio.overrides` for custom files:
+
+```js
+audio: {
+  profile: 'bulkhead',
+  volume: {
+    doors: 0.82,
+    typing: 0.35
+  },
+  overrides: {
+    close: 'modules/anarchist-overlay/sounds/custom-close.ogg',
+    seal: 'modules/anarchist-overlay/sounds/custom-seal.ogg',
+    unlock: 'modules/anarchist-overlay/sounds/custom-unlock.ogg',
+    open: 'modules/anarchist-overlay/sounds/custom-open.ogg',
+    typing: 'modules/anarchist-overlay/sounds/custom-type.ogg'
+  }
+}
+```
+
+The `bulkhead` bank is derived from CC0 Freesound sources:
+
+- `industrial-bulkhead-close.ogg`: [lezaarth, "Electric Door"](https://freesound.org/people/lezaarth/sounds/316092/), reversed from about 1.0s to 3.6s.
+- `industrial-bulkhead-seal.ogg`: [SecureSubset, "Large Metal Bunker Doors, Opening and Closing, Resonances"](https://freesound.org/people/SecureSubset/sounds/845666/), cut from about 9.5s to 11.5s.
 - `industrial-bulkhead-unlock.ogg`: [Velvorn, "sas_fermeture.WAV"](https://freesound.org/people/Velvorn/sounds/95772/), cut from the opening 1.55s.
 - `industrial-bulkhead-open.ogg`: [lezaarth, "Electric Door"](https://freesound.org/people/lezaarth/sounds/316092/), cut from about 1.0s to 5.1s.
 
-Heavy mechanical:
+## Briefing Text
+
+Briefings are used by both `transitionToScene` and `showTextOverlay`.
 
 ```js
-const ao = game.modules.get('anarchist-overlay').api;
-
-await ao.playSceneTransition({
-  sceneName: 'TARGET SCENE NAME',
-  transition: {
-    type: 'industrial-doors',
-    theme: { type: 'industrial' }
-  },
-  soundProfile: {
-    type: 'heavy-industrial'
-  },
-  text: {
-    alignX: 'center',
-    textAlign: 'center',
+briefing: {
+  frame: 'mission-card',
+  style: 'industrial',
+  layout: {
+    align: 'center',
+    textAlign: 'start',
     maxWidth: '820px',
-    frame: { type: 'mission-card' },
-    theme: { type: 'industrial' },
-    lines: [
-      { text: 'HEAVY DOOR TEST', fontSize: '44px' },
-      { text: 'MECHANICAL OVERRIDE ENGAGED', fontSize: '26px' }
-    ]
-  },
-  timing: {
-    doorCloseMs: 2200,
-    doorUnlockMs: 700,
-    doorOpenMs: 2400,
-    textFadeMs: 900
-  }
-});
-```
-
-Harsh mechanical:
-
-```js
-const ao = game.modules.get('anarchist-overlay').api;
-
-await ao.playSceneTransition({
-  sceneName: 'TARGET SCENE NAME',
-  transition: {
-    type: 'industrial-doors',
-    theme: { type: 'industrial' }
-  },
-  soundProfile: {
-    type: 'harsh-industrial'
-  },
-  text: {
-    alignX: 'center',
-    textAlign: 'center',
-    maxWidth: '820px',
-    frame: { type: 'horizontal-bar' },
-    theme: { type: 'alert' },
-    effect: { type: 'wipe', duration: 0.85, lineDelay: 0.18 },
-    lines: [
-      { text: 'HARSH DOOR TEST', fontSize: '40px' },
-      { text: 'BULKHEAD CYCLING', fontSize: '24px' }
-    ]
-  },
-  timing: {
-    doorCloseMs: 2200,
-    doorUnlockMs: 700,
-    doorOpenMs: 2400,
-    textFadeMs: 900
-  }
-});
-```
-
-Other bundled profiles are `classic-industrial`, `terminal`, `scanline`, `alert`, `hologram`, `classified`, and `silent`.
-
-### Macro Helper Patterns
-
-These are plain macro helpers layered over the module API. They are useful if you want consistent formatting without repeating the same config in every scene macro.
-
-```js
-const ao = game.modules.get('anarchist-overlay').api;
-
-const missionLines = entries => entries.map(([text, fontSize]) => ({ text, fontSize }));
-
-const briefingText = ({
-  frame = 'mission-card',
-  theme = 'industrial',
-  effect = 'typewriter',
-  alignX = 'center',
-  textAlign = 'start',
-  maxWidth = '820px',
-  lines
-}) => ({
-  alignX,
-  textAlign,
-  maxWidth,
-  typingTime: 1.6,
-  delay: 0.35,
-  frame: { type: frame },
-  theme: { type: theme },
-  effect: { type: effect },
-  lines
-});
-```
-
-Use that helper for a standalone overlay:
-
-```js
-const textHtml = await ao.createTextCrawlHtml(briefingText({
-  frame: 'horizontal-bar',
-  theme: 'hologram',
-  textAlign: 'center',
-  lines: missionLines([
-    ['DROP ZONE TELEMETRY ACQUIRED', '34px'],
-    ['HOSTILE SIGNATURES DETECTED', '24px']
-  ])
-}));
-
-await ao.createOverlay({
-  id: 'telemetry-update',
-  positionX: 'center',
-  positionY: 'center',
-  closeTime: 8,
-  clearExisting: true
-}, textHtml);
-```
-
-Or wrap the full scene transition:
-
-```js
-async function playMissionTransition(sceneName, entries, options = {}) {
-  return ao.playSceneTransition({
-    sceneName,
-    theme: {
-      type: options.theme ?? 'industrial'
-    },
-    transition: {
-      type: options.transition ?? 'industrial-doors',
-      theme: {
-        type: options.transitionTheme ?? options.theme ?? 'industrial'
-      }
-    },
-    soundProfile: {
-      type: options.soundProfile ?? 'bulkhead'
-    },
-    text: briefingText({
-      frame: options.frame ?? 'mission-card',
-      theme: options.textTheme ?? options.theme ?? 'industrial',
-      effect: options.effect ?? 'typewriter',
-      lines: missionLines(entries)
-    }),
-    timing: {
-      doorCloseMs: 2600,
-      doorUnlockMs: 1500,
-      doorOpenMs: 4100,
-      textFadeMs: 900
+    offset: {
+      x: '0',
+      y: '0'
     }
-  });
+  },
+  animation: {
+    type: 'typewriter',
+    durationMs: 1600,
+    lineDelayMs: 350
+  },
+  lines: [
+    { text: 'MISSION 1: BUG HUNT', fontSize: '52px' },
+    { text: 'COMBAT: TRAPDOOR SPIDER', fontSize: '38px' }
+  ]
 }
+```
 
-await playMissionTransition('Sandbox', [
-  ['MISSION 1: BUG HUNT', '52px'],
-  ['COMBAT: TRAPDOOR SPIDER', '38px'],
-  ['OBJECTIVE: SEARCH AND DESTROY', '34px'],
-  ['EARLY SPRING, 5014U | HERCYNIA', '20px']
-], {
-  transitionTheme: 'classified',
-  textTheme: 'hologram',
-  soundProfile: 'bulkhead',
-  effect: 'decode'
+Available frames:
+
+```js
+'cinematic-bars'
+'horizontal-bar'
+'lower-third'
+'panel'
+'mission-card'
+'chyron'
+'none'
+```
+
+Available text animations:
+
+```js
+'typewriter'
+'scroll'
+'stagger-fade'
+'decode'
+'wipe'
+'none'
+```
+
+The `scroll` animation is supported only by `chyron` and `horizontal-bar`.
+
+## Text Overlays
+
+```js
+const ao = game.modules.get('anarchist-overlay').api;
+
+await ao.showTextOverlay({
+  id: 'mission-alert',
+  placement: {
+    x: 'center',
+    y: 'center'
+  },
+  durationMs: 8000,
+  behavior: {
+    clearExisting: true,
+    closeAllWindows: false,
+    blockInteractions: false
+  },
+  text: {
+    frame: 'horizontal-bar',
+    style: 'alert',
+    layout: {
+      align: 'center',
+      textAlign: 'center'
+    },
+    animation: {
+      type: 'wipe',
+      durationMs: 850,
+      lineDelayMs: 180
+    },
+    lines: [
+      { text: 'WARNING: CONTAINMENT FAILURE', fontSize: '42px' },
+      { text: 'EVACUATE NONESSENTIAL PERSONNEL', fontSize: '26px' }
+    ]
+  }
 });
 ```
 
-## Config
+Chyron example:
+
 ```js
-//Overlay config
-export type OverlayConfig = {
-  id?: string; // optional id, useful for closeOverlay
-  positionX?: string; // 'start', 'center' or 'end'
-  positionY?: string; // 'start', 'center' or 'end'
-  fadeOnClose?: boolean; // should overlay fade out after closeTime
-  closeTime?: number; // how long overlay should stay open, in seconds. Set to 0 to keep it open.
-  closeAllWindows?: boolean; // should all Foundry windows (character sheets etc.) be closed when the overlay opens
-  clearExisting?: boolean; // should existing Anarchist Overlay overlays be removed before creating this overlay
-  aboveUi?: boolean; // should it render above or under UI
-  blockInteractions?: boolean; // should it block interactions with canvas and/or UI (defaults to true)
-}
-//Text config
-export type TextCrawlFrameType =
-  | 'none'
-  | 'cinematic-bars'
-  | 'horizontal-bar'
-  | 'lower-third'
-  | 'chyron'
-  | 'panel'
-  | 'mission-card';
-export type PresentationThemeType =
-  | 'industrial'
-  | 'terminal'
-  | 'scanline'
-  | 'alert'
-  | 'hologram'
-  | 'classified'
-  | 'clean';
-export type TextCrawlEffectType =
-  | 'typewriter'
-  | 'scroll'
-  | 'stagger-fade'
-  | 'decode'
-  | 'wipe'
-  | 'none';
-export type TextCrawlAlignment = 'start' | 'center' | 'end';
+await ao.showTextOverlay({
+  id: 'mission-chyron',
+  placement: {
+    x: 'center',
+    y: 'center'
+  },
+  durationMs: 18000,
+  behavior: {
+    clearExisting: true
+  },
+  text: {
+    frame: 'chyron',
+    style: 'scanline',
+    animation: {
+      type: 'scroll',
+      durationMs: 18000,
+      loop: true,
+      separator: ' // '
+    },
+    lines: [
+      { text: 'MISSION UPDATE: HOSTILE CONTACTS DETECTED', fontSize: '24px' },
+      { text: 'OBJECTIVE: SECURE THE LANDING ZONE', fontSize: '24px' },
+      { text: 'WEATHER: EXTREME HUMIDITY', fontSize: '24px' }
+    ]
+  }
+});
+```
 
-export type TextCrawlConfig = {
-  offsetX?: string; // for example '15px'. Applied after alignX.
-  offsetY?: string; // for example '15px'
-  alignX?: TextCrawlAlignment; // positions the text block. Default: 'start'
-  textAlign?: TextCrawlAlignment; // aligns each line inside the text block. Default: 'start'
-  maxWidth?: string; // max text block width. Defaults to the longest rendered line.
-  typingTime?: number, // typewriter effect duration in seconds per line
-  delay?: number, // typewriter pause in seconds before the next line is typed
-  frame?: {
-    type?: TextCrawlFrameType; // defaults to 'cinematic-bars'
-  };
-  theme?: {
-    type?: PresentationThemeType; // defaults from the frame type
-  };
-  effect?: {
-    type?: TextCrawlEffectType; // defaults to 'typewriter', or 'scroll' for the 'chyron' frame
-    duration?: number; // effect duration in seconds. Scroll default: 18
-    lineDelay?: number; // delay in seconds between animated lines for stagger-fade, decode, and wipe.
-    loop?: boolean; // should scroll repeat. Defaults to true for scroll.
-    separator?: string; // text between scroll items. Default: ' // '
-  };
-  lines: { text: string, fontSize?: string }[], // list of lines to be rendered
-  glitchEffect?: { time: number } | false; // adds a glitch effect. Should contain object with information how long should animation loop take
-};
+## HTML Overlays
 
-// Scene transition config
-export type SceneTransitionType = 'industrial-doors' | 'horizontal-shutter' | 'fade';
-export type SceneTransitionSoundProfileType =
-  | 'bulkhead'
-  | 'classic-industrial'
-  | 'heavy-industrial'
-  | 'harsh-industrial'
-  | 'terminal'
-  | 'scanline'
-  | 'alert'
-  | 'hologram'
-  | 'classified'
-  | 'silent';
+`showHtmlOverlay` renders arbitrary GM-provided HTML on every connected client. Use it only for trusted GM macros.
 
-export type SceneTransitionConfig = {
-  sceneName: string; // target scene name. Must match exactly and be unique.
-  id?: string; // optional transition id, defaults to 'scene-transition'
-  theme?: {
-    type?: PresentationThemeType; // default theme for transition text when text.theme is not set
+```js
+await ao.showHtmlOverlay({
+  id: 'warning',
+  html: '<h1>Evacuate immediately</h1>',
+  placement: {
+    x: 'center',
+    y: 'center'
+  },
+  durationMs: 0,
+  behavior: {
+    clearExisting: true
+  }
+});
+```
+
+## Closing Overlays
+
+```js
+await ao.closeOverlay('warning');
+await ao.closeAllOverlays();
+```
+
+## Config Reference
+
+```ts
+type TransitionToSceneConfig = {
+  scene: {
+    name: string;
   };
+  id?: string;
+  preset?: 'bulkhead' | 'quick-alert' | 'silent-fade';
   transition?: {
-    type?: SceneTransitionType; // defaults to 'industrial-doors'
-    theme?: {
-      type?: PresentationThemeType; // defaults from the top-level theme, then 'industrial'
+    type?: 'split-door' | 'horizontal-shutter' | 'fade';
+    style?: 'industrial' | 'terminal' | 'scanline' | 'alert' | 'hologram' | 'classified' | 'clean';
+  };
+  briefing?: BriefingConfig;
+  audio?: {
+    profile?: 'bulkhead'
+      | 'classic-industrial'
+      | 'heavy-industrial'
+      | 'harsh-industrial'
+      | 'terminal'
+      | 'scanline'
+      | 'alert'
+      | 'hologram'
+      | 'classified'
+      | 'silent';
+    volume?: {
+      doors?: number;
+      typing?: number;
+    };
+    overrides?: {
+      close?: string;
+      seal?: string;
+      unlock?: string;
+      open?: string;
+      typing?: string;
     };
   };
-  soundProfile?: {
-    type?: SceneTransitionSoundProfileType; // defaults to 'bulkhead'
+  timeline?: {
+    closeMs?: number;
+    briefingMs?: number;
+    unlockMs?: number;
+    openMs?: number;
+    fadeOutMs?: number;
+    fadeInMs?: number;
+    textFadeMs?: number;
+    sceneReadyTimeoutMs?: number;
   };
-  text?: TextCrawlConfig; // optional text crawl config rendered while doors are closed
-  timing?: {
-    doorCloseMs?: number; // door close animation duration. Default: 2600
-    briefingMs?: number; // how long text remains before doors open. Defaults from the text effect duration.
-    doorUnlockMs?: number; // delay after the unlock sound before doors open. Default: 1500
-    doorOpenMs?: number; // door open animation duration. Default: 4100
-    fadeOutMs?: number; // fade-to-black animation duration. Default: 1200
-    fadeInMs?: number; // fade-from-black animation duration. Default: 1200
-    textFadeMs?: number; // text fade duration before the transition reveal completes. Default: 900
-    sceneReadyTimeoutMs?: number; // max wait for the target scene canvas to be ready. Default: 10000
+  behavior?: {
+    aboveUi?: boolean;
+    blockInteractions?: boolean;
+    escape?: 'skip-local';
   };
-  sounds?: {
-    doorClose?: string; // local sound path for door close. Defaults from soundProfile.
-    doorSeal?: string; // local sound path for doors sealing shut. Defaults from soundProfile.
-    doorUnlock?: string; // local sound path before doors open. Defaults from soundProfile.
-    doorOpen?: string; // local sound path for door open. Defaults from soundProfile.
-    typingClick?: string; // local click sound path scheduled with typed characters for typewriter text. Defaults from soundProfile.
-    doorVolume?: number; // defaults from soundProfile
-    typingVolume?: number; // defaults from soundProfile
+};
+
+type BriefingConfig = {
+  frame?: 'cinematic-bars' | 'horizontal-bar' | 'lower-third' | 'panel' | 'mission-card' | 'chyron' | 'none';
+  style?: 'industrial' | 'terminal' | 'scanline' | 'alert' | 'hologram' | 'classified' | 'clean';
+  layout?: {
+    align?: 'start' | 'center' | 'end';
+    textAlign?: 'start' | 'center' | 'end';
+    maxWidth?: string;
+    offset?: {
+      x?: string;
+      y?: string;
+    };
   };
-  aboveUi?: boolean; // defaults to true
-  blockInteractions?: boolean; // defaults to true
+  animation?: {
+    type?: 'typewriter' | 'scroll' | 'stagger-fade' | 'decode' | 'wipe' | 'none';
+    durationMs?: number;
+    lineDelayMs?: number;
+    loop?: boolean;
+    separator?: string;
+  };
+  lines: Array<{
+    text: string;
+    fontSize?: string;
+  }>;
+  glitch?: {
+    cycleMs: number;
+  } | false;
+};
+
+type ShowTextOverlayConfig = {
+  id?: string;
+  text: BriefingConfig;
+  placement?: {
+    x?: 'start' | 'center' | 'end';
+    y?: 'start' | 'center' | 'end';
+  };
+  durationMs?: number;
+  behavior?: {
+    clearExisting?: boolean;
+    closeAllWindows?: boolean;
+    aboveUi?: boolean;
+    blockInteractions?: boolean;
+    fadeOnClose?: boolean;
+  };
+};
+
+type ShowHtmlOverlayConfig = {
+  id?: string;
+  html: string;
+  placement?: {
+    x?: 'start' | 'center' | 'end';
+    y?: 'start' | 'center' | 'end';
+  };
+  durationMs?: number;
+  behavior?: {
+    clearExisting?: boolean;
+    closeAllWindows?: boolean;
+    aboveUi?: boolean;
+    blockInteractions?: boolean;
+    fadeOnClose?: boolean;
+  };
 };
 ```
 
 ## Security
 
-`createOverlay` renders arbitrary GM-provided HTML for every connected client. Only trusted GM macros should call it. Do not pass unsanitized player-provided content into `createOverlay`.
+`showHtmlOverlay` renders arbitrary GM-provided HTML for every connected client. Only trusted GM macros should call it. Do not pass unsanitized player-provided content into `showHtmlOverlay`.
