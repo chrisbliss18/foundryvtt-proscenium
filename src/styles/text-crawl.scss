@@ -126,7 +126,7 @@
   --text-crawl-sender-min-width: min(260px, 34vw);
   --text-crawl-sender-max-width: 320px;
   --text-crawl-sender-gap: 12px;
-  --text-crawl-sender-padding-x: clamp(12px, 2vw, 22px);
+  --text-crawl-sender-padding-x: 10px;
   --text-crawl-sender-image-size: clamp(58px, 9vw, 96px);
   --text-crawl-sender-image-aspect: 1;
   --text-crawl-sender-image-radius: 4px;
@@ -262,7 +262,7 @@
   --text-crawl-sender-min-width: min(220px, 30vw);
   --text-crawl-sender-max-width: 260px;
   --text-crawl-sender-gap: 9px;
-  --text-crawl-sender-padding-x: clamp(9px, 1.6vw, 16px);
+  --text-crawl-sender-padding-x: 8px;
   --text-crawl-sender-image-size: clamp(44px, 7vw, 64px);
   --text-crawl-sender-label-size: 9px;
   --text-crawl-sender-name-size: clamp(14px, 1.8vw, 18px);
@@ -274,7 +274,7 @@
   --text-crawl-sender-min-width: min(320px, 42vw);
   --text-crawl-sender-max-width: 420px;
   --text-crawl-sender-gap: 16px;
-  --text-crawl-sender-padding-x: clamp(14px, 2.4vw, 28px);
+  --text-crawl-sender-padding-x: 12px;
   --text-crawl-sender-image-size: clamp(76px, 11vw, 126px);
   --text-crawl-sender-label-size: 11px;
   --text-crawl-sender-name-size: clamp(19px, 2.5vw, 28px);
